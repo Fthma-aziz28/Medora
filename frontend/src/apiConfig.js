@@ -1,4 +1,7 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 
+    (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://localhost:8080'
+        : '');
 
 export async function fetchApi(endpoint, options = {}) {
     const token = localStorage.getItem('medora_token');
@@ -25,4 +28,4 @@ export async function fetchApi(endpoint, options = {}) {
     }
 }
 
-export { BASE_URL };
+export { BASE_URL, BASE_URL as API_BASE_URL };

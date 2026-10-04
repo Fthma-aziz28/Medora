@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ShieldAlert, Check, X } from 'lucide-react';
+import { API_BASE_URL } from '../apiConfig';
+import { DEMO_FAIRNESS_HISTORY } from '../demoData';
 import './Dashboard.css';
 
 export default function FairnessHistory() {
-    const [history, setHistory] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [history, setHistory] = useState(DEMO_FAIRNESS_HISTORY);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         fetchHistory();
@@ -13,16 +15,17 @@ export default function FairnessHistory() {
 
     const fetchHistory = async () => {
         try {
+            if (!API_BASE_URL) return;
             const token = localStorage.getItem('medora_token');
-            const res = await fetch('http://localhost:8080/api/emergency/history', {
+            const res = await fetch(`${API_BASE_URL}/api/emergency/history`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
                 const data = await res.json();
-                setHistory(data);
+                if (Array.isArray(data) && data.length > 0) setHistory(data);
             }
         } catch (error) {
-            console.error("Failed to fetch history", error);
+            console.warn("Using fallback fairness history for mobile/cloud:", error);
         } finally {
             setLoading(false);
         }

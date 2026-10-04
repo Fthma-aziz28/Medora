@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, CheckCircle, AlertTriangle, XCircle, Clock } from 'lucide-react';
+import { API_BASE_URL } from '../apiConfig';
+import { DEMO_IMPORT_HISTORY } from '../demoData';
 
 export default function ImportHistory() {
-    const [history, setHistory] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [history, setHistory] = useState(DEMO_IMPORT_HISTORY);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         fetchHistory();
@@ -11,16 +13,17 @@ export default function ImportHistory() {
 
     const fetchHistory = async () => {
         try {
+            if (!API_BASE_URL) return;
             const token = localStorage.getItem('medora_token');
-            const res = await fetch('http://localhost:8080/api/doctors/import/history', {
+            const res = await fetch(`${API_BASE_URL}/api/doctors/import/history`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
                 const data = await res.json();
-                setHistory(data);
+                if (Array.isArray(data) && data.length > 0) setHistory(data);
             }
         } catch (err) {
-            console.error("Failed to load import history", err);
+            console.warn("Using fallback demo import history for mobile/cloud:", err);
         } finally {
             setLoading(false);
         }

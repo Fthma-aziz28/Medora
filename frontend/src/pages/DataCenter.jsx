@@ -8,13 +8,15 @@ import ImportDoctors from './ImportDoctors';
 import PendingDoctors from './PendingDoctors';
 import ImportHistory from './ImportHistory';
 import AddDoctorModal from '../components/AddDoctorModal';
+import { API_BASE_URL } from '../apiConfig';
+import { DEMO_DOCTORS, DEMO_DEPARTMENTS } from '../demoData';
 import './DataCenter.css';
 
 export default function DataCenter() {
     const [activeTab, setActiveTab] = useState('directory'); // directory, import, pending, history
-    const [doctors, setDoctors] = useState([]);
-    const [departments, setDepartments] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [doctors, setDoctors] = useState(DEMO_DOCTORS);
+    const [departments, setDepartments] = useState(DEMO_DEPARTMENTS);
+    const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedDept, setSelectedDept] = useState('ALL');
     const [selectedStatus, setSelectedStatus] = useState('ALL');
@@ -25,24 +27,24 @@ export default function DataCenter() {
     }, []);
 
     const loadData = async () => {
-        setLoading(true);
         try {
+            if (!API_BASE_URL) return;
             const token = localStorage.getItem('medora_token');
             const [docRes, deptRes] = await Promise.all([
-                fetch('http://localhost:8080/api/doctors', { headers: { 'Authorization': `Bearer ${token}` } }),
-                fetch('http://localhost:8080/api/departments', { headers: { 'Authorization': `Bearer ${token}` } })
+                fetch(`${API_BASE_URL}/api/doctors`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch(`${API_BASE_URL}/api/departments`, { headers: { 'Authorization': `Bearer ${token}` } })
             ]);
 
             if (docRes.ok) {
                 const docData = await docRes.json();
-                setDoctors(docData);
+                if (Array.isArray(docData) && docData.length > 0) setDoctors(docData);
             }
             if (deptRes.ok) {
                 const deptData = await deptRes.json();
-                setDepartments(deptData);
+                if (Array.isArray(deptData) && deptData.length > 0) setDepartments(deptData);
             }
         } catch (err) {
-            console.error("Failed to load Data Center records", err);
+            console.warn("Using fallback demo doctors for mobile/cloud:", err);
         } finally {
             setLoading(false);
         }

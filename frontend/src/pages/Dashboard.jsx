@@ -8,13 +8,15 @@ import AddDoctorModal from '../components/AddDoctorModal';
 import UploadDocumentModal from '../components/UploadDocumentModal';
 import EditLeaveModal from '../components/EditLeaveModal';
 import { Plus, Check, X, MessageSquare, Edit3, Calendar, FileText } from 'lucide-react';
+import { API_BASE_URL } from '../apiConfig';
+import { DEMO_LEAVES } from '../demoData';
 import './Dashboard.css';
 
 export default function Dashboard() {
     const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-    const [leaves, setLeaves] = useState([]);
+    const [leaves, setLeaves] = useState(DEMO_LEAVES);
     const [leaveFilter, setLeaveFilter] = useState('ALL');
     const [comment, setComment] = useState('');
     const [activeCommentId, setActiveCommentId] = useState(null);
@@ -26,40 +28,48 @@ export default function Dashboard() {
 
     const fetchLeaves = async () => {
         try {
+            if (!API_BASE_URL) {
+                setLeaves(DEMO_LEAVES);
+                return;
+            }
             const token = localStorage.getItem('medora_token');
-            const res = await fetch('http://localhost:8080/api/leaves', {
+            const res = await fetch(`${API_BASE_URL}/api/leaves`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
                 const data = await res.json();
-                setLeaves(data);
+                setLeaves(Array.isArray(data) && data.length > 0 ? data : DEMO_LEAVES);
+            } else {
+                setLeaves(DEMO_LEAVES);
             }
         } catch (error) {
-            console.error("Failed to fetch leaves", error);
+            console.warn("Using fallback leaves for mobile/cloud:", error);
+            setLeaves(DEMO_LEAVES);
         }
     };
 
     const handleLeaveAction = async (id, status) => {
         try {
-            const token = localStorage.getItem('medora_token');
-            const res = await fetch(`http://localhost:8080/api/leaves/${id}/status`, {
-                method: 'PUT',
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json' 
-                },
-                body: JSON.stringify({ status })
-            });
-            if (res.ok) {
-                fetchLeaves();
-                setActiveCommentId(null);
-                setComment('');
-                if (status === 'APPROVED') {
-                    navigate(`/app/emergency-allocation/${id}`);
-                }
+            if (API_BASE_URL) {
+                const token = localStorage.getItem('medora_token');
+                await fetch(`${API_BASE_URL}/api/leaves/${id}/status`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify({ status })
+                });
             }
         } catch (error) {
-            console.error("Failed to update status", error);
+            console.warn("Backend update failed, applying locally:", error);
+        } finally {
+            setLeaves(prev => prev.map(l => l.id === id ? { ...l, status } : l));
+            setActiveCommentId(null);
+            setComment('');
+            if (status === 'APPROVED') {
+                navigate(`/app/emergency-allocation/${id}`);
+            }
         }
     };
 

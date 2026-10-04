@@ -3,10 +3,12 @@ import './LeaveManagement.css';
 import { Check, X, Clock, Edit3, Trash2, Calendar, Stethoscope, AlertCircle, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import EditLeaveModal from '../components/EditLeaveModal';
+import { API_BASE_URL } from '../apiConfig';
+import { DEMO_LEAVES } from '../demoData';
 
 export default function LeaveManagement() {
-    const [leaves, setLeaves] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [leaves, setLeaves] = useState(DEMO_LEAVES);
+    const [loading, setLoading] = useState(false);
     const [filter, setFilter] = useState('ALL');
     const [editingLeave, setEditingLeave] = useState(null);
     const [search, setSearch] = useState('');
@@ -18,16 +20,17 @@ export default function LeaveManagement() {
 
     const fetchLeaves = async () => {
         try {
+            if (!API_BASE_URL) return;
             const token = localStorage.getItem('medora_token');
-            const res = await fetch('http://localhost:8080/api/leaves', {
+            const res = await fetch(`${API_BASE_URL}/api/leaves`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
                 const data = await res.json();
-                setLeaves(data);
+                if (Array.isArray(data) && data.length > 0) setLeaves(data);
             }
         } catch (error) {
-            console.error("Failed to fetch leaves", error);
+            console.warn("Using fallback leaves for mobile/cloud:", error);
         } finally {
             setLoading(false);
         }
@@ -35,39 +38,41 @@ export default function LeaveManagement() {
 
     const updateStatus = async (id, status) => {
         try {
-            const token = localStorage.getItem('medora_token');
-            const res = await fetch(`http://localhost:8080/api/leaves/${id}/status`, {
-                method: 'PUT',
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json' 
-                },
-                body: JSON.stringify({ status })
-            });
-            if (res.ok) {
-                setLeaves(leaves.map(l => l.id === id ? { ...l, status } : l));
-                if (status === 'APPROVED') {
-                    navigate(`/app/emergency-allocation/${id}`);
-                }
+            if (API_BASE_URL) {
+                const token = localStorage.getItem('medora_token');
+                await fetch(`${API_BASE_URL}/api/leaves/${id}/status`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify({ status })
+                });
             }
         } catch (error) {
-            console.error("Failed to update status", error);
+            console.warn("Backend update failed, applying locally:", error);
+        } finally {
+            setLeaves(prev => prev.map(l => l.id === id ? { ...l, status } : l));
+            if (status === 'APPROVED') {
+                navigate(`/app/emergency-allocation/${id}`);
+            }
         }
     };
 
     const handleDelete = async (id) => {
         if (!window.confirm("Are you sure you want to delete this doctor leave record?")) return;
         try {
-            const token = localStorage.getItem('medora_token');
-            const res = await fetch(`http://localhost:8080/api/leaves/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                setLeaves(leaves.filter(l => l.id !== id));
+            if (API_BASE_URL) {
+                const token = localStorage.getItem('medora_token');
+                await fetch(`${API_BASE_URL}/api/leaves/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
             }
         } catch (error) {
-            console.error("Failed to delete leave", error);
+            console.warn("Backend delete failed, removing locally:", error);
+        } finally {
+            setLeaves(prev => prev.filter(l => l.id !== id));
         }
     };
 

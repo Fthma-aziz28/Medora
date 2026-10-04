@@ -3,10 +3,12 @@ import { Pencil, Trash2, Plus } from 'lucide-react';
 import EditAppointmentModal from '../components/EditAppointmentModal';
 import AddAppointmentModal from '../components/AddAppointmentModal';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../apiConfig';
+import { DEMO_APPOINTMENTS } from '../demoData';
 import './Roster.css';
 
 export default function Appointments() {
-    const [appointments, setAppointments] = useState([]);
+    const [appointments, setAppointments] = useState(DEMO_APPOINTMENTS);
     const [editingAppt, setEditingAppt] = useState(null);
     const [isAddOpen, setIsAddOpen] = useState(false);
     const { user } = useAuth();
@@ -18,10 +20,15 @@ export default function Appointments() {
     };
 
     const fetchAppointments = () => {
-        fetch('http://localhost:8080/api/appointments')
+        if (!API_BASE_URL) return;
+        fetch(`${API_BASE_URL}/api/appointments`)
             .then(res => res.json())
-            .then(data => setAppointments(data))
-            .catch(console.error);
+            .then(data => {
+                if (Array.isArray(data) && data.length > 0) setAppointments(data);
+            })
+            .catch(err => {
+                console.warn("Using fallback demo appointments for mobile/cloud:", err);
+            });
     };
 
     useEffect(() => {
@@ -31,10 +38,13 @@ export default function Appointments() {
     const handleDelete = async (id) => {
         if (window.confirm("Are you sure you want to cancel and remove this appointment?")) {
             try {
-                const res = await fetch(`http://localhost:8080/api/appointments/${id}`, { method: 'DELETE' });
-                if (res.ok) fetchAppointments();
+                if (API_BASE_URL) {
+                    await fetch(`${API_BASE_URL}/api/appointments/${id}`, { method: 'DELETE' });
+                }
             } catch (err) {
-                console.error(err);
+                console.warn("Backend delete failed, removing locally:", err);
+            } finally {
+                setAppointments(prev => prev.filter(a => a.id !== id));
             }
         }
     };

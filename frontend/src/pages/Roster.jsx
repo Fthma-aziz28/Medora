@@ -2,18 +2,25 @@ import React, { useEffect, useState } from 'react';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import EditDoctorModal from '../components/EditDoctorModal';
 import AddDoctorModal from '../components/AddDoctorModal';
+import { API_BASE_URL } from '../apiConfig';
+import { DEMO_DOCTORS } from '../demoData';
 import './Roster.css';
 
 export default function Roster() {
-    const [doctors, setDoctors] = useState([]);
+    const [doctors, setDoctors] = useState(DEMO_DOCTORS);
     const [editingDoctor, setEditingDoctor] = useState(null);
     const [isAddOpen, setIsAddOpen] = useState(false);
 
     const fetchDoctors = () => {
-        fetch('http://localhost:8080/api/doctors')
+        if (!API_BASE_URL) return;
+        fetch(`${API_BASE_URL}/api/doctors`)
             .then(res => res.json())
-            .then(data => setDoctors(data))
-            .catch(console.error);
+            .then(data => {
+                if (Array.isArray(data) && data.length > 0) setDoctors(data);
+            })
+            .catch(err => {
+                console.warn("Using fallback demo roster for mobile/cloud:", err);
+            });
     };
 
     useEffect(() => {
@@ -23,10 +30,13 @@ export default function Roster() {
     const handleDelete = async (id) => {
         if (window.confirm("Are you sure you want to remove this doctor from the roster?")) {
             try {
-                const res = await fetch(`http://localhost:8080/api/doctors/${id}`, { method: 'DELETE' });
-                if (res.ok) fetchDoctors();
+                if (API_BASE_URL) {
+                    await fetch(`${API_BASE_URL}/api/doctors/${id}`, { method: 'DELETE' });
+                }
             } catch (err) {
-                console.error(err);
+                console.warn("Backend delete failed, removing locally:", err);
+            } finally {
+                setDoctors(prev => prev.filter(d => d.id !== id));
             }
         }
     };
