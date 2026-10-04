@@ -1,0 +1,62 @@
+.page-header h1 {
+    margin: 0;
+    font-weight: 300;
+    font-size: 2.5rem;
+    color: var(--color-1);
+    font-family: 'Playfair Display', serif;
+}
+
+.page-header p {
+    color: var(--color-3);
+    margin-top: 0.5rem;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.metric-card {
+    padding: 1.5rem;
+}
+
+.metric-card h3 {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--color-2);
+    text-transform: uppercase;
+}
+
+.metric-card .value {
+    margin: 0.5rem 0 0 0;
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: var(--color-1);
+}
+
+.metric-card.alert {
+    border-left: 4px solid var(--color-4);
+}
+
+.metric-card.alert .value {
+    color: var(--color-4);
+}
+
+.charts-grid {
+    margin-top: 2rem;
+}
+
+.chart-container {
+    padding: 1.5rem;
+}
+
+.chart-container h3 {
+    margin-top: 0;
+    color: var(--color-1);
+    font-weight: 600;
+    font-family: 'Playfair Display', serif;
+}
+
+.clickable-metric:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }

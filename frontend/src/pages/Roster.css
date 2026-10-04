@@ -1,0 +1,114 @@
+.roster-container {
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.table-wrapper {
+    background: white;
+    margin-top: 2rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow-x: auto;
+}
+
+.medora-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.medora-table th, .medora-table td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.medora-table th {
+    background-color: #f8fafc;
+    color: #8E9BA2;
+    font-weight: 500;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+}
+
+.medora-table td {
+    color: #172A32;
+    font-size: 0.95rem;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.status-badge.confirmed {
+    background-color: #e0f2fe;
+    color: #0369a1;
+}
+
+.status-badge.pending {
+    background-color: #fef3c7;
+    color: #b45309;
+}
+
+.status-badge.cancelled {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+/* Mobile responsive tables - Compact Cards */
+@media (max-width: 768px) {
+    .table-wrapper {
+        border: none;
+        background: transparent;
+    }
+    
+    .medora-table thead {
+        display: none;
+    }
+    
+    .medora-table, .medora-table tbody, .medora-table tr, .medora-table td {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .medora-table tr {
+        margin-bottom: 1rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1rem;
+        background: white;
+    }
+    
+    .medora-table td {
+        text-align: right;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f1f5f9;
+        position: relative;
+        font-size: 0.9rem;
+    }
+    
+    .medora-table td:last-child {
+        border-bottom: none;
+    }
+    
+    .medora-table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        width: 45%;
+        padding-right: 10px;
+        text-align: left;
+        font-weight: 500;
+        color: #8E9BA2;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+    }
+}

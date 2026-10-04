@@ -1,0 +1,132 @@
+.login-container {
+    display: flex;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    background-color: #F4F1E9; /* Warm paper */
+}
+
+.brand-side {
+    flex: 1;
+    background-color: #172A32; /* Deep ink */
+    color: #F4F1E9;
+    padding: 4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.brand-side h1 {
+    font-size: 3rem;
+    font-weight: 300;
+    margin: 0;
+    letter-spacing: 2px;
+}
+
+.brand-side .subtitle {
+    font-size: 1.25rem;
+    color: #B7C8B2; /* Muted sage */
+    margin-top: 0.5rem;
+}
+
+.brand-side .description {
+    margin-top: 2rem;
+    max-width: 400px;
+    line-height: 1.6;
+    color: #8E9BA2;
+}
+
+.form-side {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.login-form {
+    width: 100%;
+    max-width: 400px;
+    background: white;
+    padding: 3rem;
+    border: 1px solid #e2e8f0;
+}
+
+.login-form h2 {
+    margin-top: 0;
+    margin-bottom: 2rem;
+    font-weight: 500;
+    color: #172A32;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    color: #172A32;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #cbd5e1;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #172A32;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 1rem;
+    background-color: #172A32;
+    color: white;
+    border: none;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.login-btn:hover {
+    background-color: #0d181c;
+}
+
+.error-message {
+    background-color: #AD594D; /* Brick red */
+    color: white;
+    padding: 0.75rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+}
+
+/* MOBILE RESPONSIVENESS */
+@media (max-width: 768px) {
+    .login-container {
+        flex-direction: column;
+    }
+    .brand-side {
+        padding: 2rem;
+        flex: none;
+    }
+    .brand-side h1 {
+        font-size: 2rem;
+    }
+    .form-side {
+        padding: 1rem;
+        align-items: flex-start;
+    }
+    .login-form {
+        padding: 2rem 1.5rem;
+        border: none;
+        box-shadow: none;
+    }
+}

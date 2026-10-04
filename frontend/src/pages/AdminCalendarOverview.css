@@ -1,0 +1,103 @@
+.admin-calendar-container {
+    padding: 2rem;
+    margin: 2rem 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    color: var(--text-primary);
+    background: #fdfbf7; /* Very light warm beige for the calendar background */
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(5, 31, 32, 0.08);
+    overflow-x: auto;
+}
+
+.calendar-header {
+    margin-bottom: 2rem;
+    color: var(--color-1);
+}
+
+.calendar-header h2 {
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.calendar-header p {
+    color: var(--color-3);
+}
+
+.calendar-wrapper {
+    background: transparent;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+/* React Big Calendar Overrides for Light/Beige Theme */
+.rbc-calendar {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #faf9f6; /* Paper-like background */
+    color: #4a4a4a;
+}
+
+.rbc-toolbar button {
+    color: var(--color-2);
+    border-color: #e2dfd8;
+}
+
+.rbc-toolbar button:active,
+.rbc-toolbar button.rbc-active {
+    background-color: #e6e2da;
+    color: var(--color-1);
+    box-shadow: none;
+}
+
+.rbc-month-view, .rbc-time-view, .rbc-agenda-view {
+    border-color: #e2dfd8;
+}
+
+.rbc-day-bg + .rbc-day-bg, .rbc-month-row + .rbc-month-row {
+    border-color: #e2dfd8;
+}
+
+.rbc-header {
+    border-color: #e2dfd8;
+    padding: 0.5rem;
+    font-weight: 600;
+    color: var(--color-2);
+}
+
+.rbc-off-range-bg {
+    background: #f0eee9;
+}
+
+.rbc-today {
+    background: #fdfbf7; /* Remove harsh highlight, match BG */
+}
+
+/* Give the today header a slight accent */
+.rbc-header.rbc-today {
+    background: #DAF1DE; 
+    border-radius: 4px;
+}
+
+.rbc-time-content > * + * > * {
+    border-color: #e2dfd8;
+}
+
+.rbc-timeslot-group {
+    border-color: #e2dfd8;
+}
+
+.rbc-time-header-content {
+    border-color: #e2dfd8;
+}
+
+/* Hide overlapping border for a cleaner look */
+.rbc-time-view {
+    border: none;
+}
+.rbc-time-header {
+    margin-right: 0 !important; /* Fix misalignment in some views */
+}
+

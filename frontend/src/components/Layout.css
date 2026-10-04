@@ -1,0 +1,386 @@
+/* ==========================================================================
+   MEDORA Navigation & Layout System - Pure Forest & Sage Palette
+   Stationary Fixed Sidebar + Complete Top Navbar
+   ========================================================================== */
+
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+    max-width: 100vw;
+    background-color: transparent;
+    font-family: inherit;
+    position: relative;
+}
+
+/* --------------------------------------------------------------------------
+   STATIONARY FIXED SIDEBAR NAVIGATION
+   -------------------------------------------------------------------------- */
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    background-color: var(--color-1); /* #051F20 Deep Forest */
+    color: var(--color-beige);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    z-index: 100;
+    box-shadow: 4px 0 24px rgba(5, 31, 32, 0.25);
+    border-right: 1px solid rgba(218, 241, 222, 0.1);
+}
+
+.sidebar-header {
+    padding: 1.75rem 1.5rem;
+    position: relative;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-subtitle {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.75rem;
+    color: var(--color-5);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+}
+
+.close-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--color-beige);
+    cursor: pointer;
+    padding: 0.25rem;
+}
+
+/* Navigation Links Container */
+.nav-links {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 0.85rem;
+    gap: 0.35rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Custom sleek scrollbar for sidebar nav */
+.nav-links::-webkit-scrollbar {
+    width: 4px;
+}
+.nav-links::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+}
+
+.nav-group-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: rgba(218, 241, 222, 0.55);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.85rem 0.75rem 0.35rem 0.75rem;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    color: var(--color-5);
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+}
+
+.nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.07);
+    color: #ffffff;
+    transform: translateX(2px);
+}
+
+.nav-item.active {
+    background: linear-gradient(90deg, rgba(35, 83, 71, 0.65) 0%, rgba(22, 56, 50, 0.4) 100%);
+    color: var(--color-beige);
+    font-weight: 600;
+    border-left: 3px solid var(--color-5);
+    box-shadow: 0 2px 10px rgba(5, 31, 32, 0.3);
+}
+
+.nav-item svg {
+    flex-shrink: 0;
+}
+
+/* Sidebar Footer & User Info */
+.sidebar-footer {
+    padding: 1.25rem 1.25rem 1.5rem 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(5, 31, 32, 0.6);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 0.85rem;
+}
+
+.avatar {
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, var(--color-4), var(--color-3));
+    color: var(--color-6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border: 1px solid var(--color-5);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    flex-shrink: 0;
+}
+
+.details {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.details .name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.details .role {
+    font-size: 0.7rem;
+    color: var(--color-5);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--color-beige);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 500;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+    background: rgba(185, 28, 28, 0.25);
+    border-color: rgba(185, 28, 28, 0.4);
+    color: #fca5a5;
+}
+
+/* --------------------------------------------------------------------------
+   MAIN CONTENT AREA & TOP NAVBAR
+   -------------------------------------------------------------------------- */
+.main-content {
+    flex: 1;
+    margin-left: 260px;
+    width: calc(100% - 260px);
+    max-width: calc(100% - 260px);
+    min-width: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* Complete Top Navbar */
+.top-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2.5rem;
+    background: rgba(253, 251, 247, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--glass-border);
+    box-shadow: 0 2px 12px rgba(5, 31, 32, 0.04);
+}
+
+.top-navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.mobile-toggle-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--color-1);
+    cursor: pointer;
+    padding: 0.25rem;
+}
+
+.breadcrumb-trail {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+}
+
+.breadcrumb-root {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    color: var(--color-1);
+    letter-spacing: 0.5px;
+}
+
+.breadcrumb-sep {
+    color: var(--color-5);
+}
+
+.breadcrumb-current {
+    font-weight: 600;
+    color: var(--color-3);
+}
+
+.top-navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.header-status-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.75rem;
+    background: rgba(35, 83, 71, 0.1);
+    border: 1px solid rgba(35, 83, 71, 0.25);
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-2);
+}
+
+.header-shift-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.75rem;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--color-3);
+}
+
+.header-role-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    background: var(--color-1);
+    color: var(--color-beige);
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.page-content {
+    padding: 2.25rem 2.5rem;
+    flex: 1;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(5, 31, 32, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 99;
+}
+
+/* --------------------------------------------------------------------------
+   RESPONSIVE DESIGN (TABLETS & MOBILE)
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+    .header-shift-badge {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -260px;
+        height: 100vh;
+        z-index: 1000;
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .sidebar.open {
+        left: 0;
+    }
+    
+    .close-menu-btn {
+        display: block;
+    }
+    
+    .mobile-toggle-btn {
+        display: block;
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .top-navbar {
+        padding: 0 1.25rem;
+        height: 56px;
+    }
+
+    .header-status-badge {
+        display: none;
+    }
+
+    .page-content {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .sidebar-overlay {
+        display: block;
+    }
+}

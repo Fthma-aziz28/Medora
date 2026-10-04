@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Production & Build outputs
+dist/
+frontend/dist/
+target/
+backend/target/
+*.class
+*.jar
+*.war
+
+# Installers, Server binaries & Database data
+node.msi
+mysql-server/
+*.exe
+*.msi
+*.dll
+
+# Logs & Temporary files
+*.log
+mysql_debug.log
+
+# IDE & OS specific files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Environment variables
+.env
+.env.local

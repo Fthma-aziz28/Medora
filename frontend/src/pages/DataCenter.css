@@ -1,0 +1,241 @@
+/* MEDORA Data Center Styles - Pure Forest & Sage Palette */
+.datacenter-container {
+    padding: 1rem 0;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.datacenter-tabs {
+    display: flex;
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    color: var(--color-3);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    font-family: inherit;
+}
+
+.tab-btn:hover {
+    background: var(--color-6);
+    color: var(--color-1);
+    border-color: var(--color-4);
+}
+
+.tab-btn.active {
+    background: var(--color-4);
+    color: var(--color-beige);
+    border-color: var(--color-3);
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(5, 31, 32, 0.2);
+}
+
+.badge-count {
+    background: rgba(35, 83, 71, 0.2);
+    color: var(--color-1);
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 700;
+}
+
+.tab-btn.active .badge-count {
+    background: var(--color-6);
+    color: var(--color-1);
+}
+
+/* Pipeline visualization */
+.pipeline-visualizer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: 14px;
+    padding: 1.25rem 1.75rem;
+    margin-bottom: 2rem;
+    overflow-x: auto;
+    backdrop-filter: blur(12px);
+}
+
+.pipeline-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 90px;
+    position: relative;
+}
+
+.step-node {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.6);
+    color: var(--color-3);
+    border: 2px solid var(--color-5);
+    transition: all 0.3s ease;
+}
+
+.pipeline-step.active .step-node {
+    background: var(--color-4);
+    color: var(--color-beige);
+    border-color: var(--color-2);
+    box-shadow: 0 0 15px rgba(35, 83, 71, 0.35);
+}
+
+.pipeline-step.completed .step-node {
+    background: var(--color-5);
+    color: var(--color-1);
+    border-color: var(--color-4);
+}
+
+.step-label {
+    font-size: 0.75rem;
+    color: var(--color-3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.pipeline-step.active .step-label {
+    color: var(--color-1);
+    font-weight: 700;
+}
+
+.pipeline-arrow {
+    flex: 1;
+    height: 2px;
+    background: rgba(35, 83, 71, 0.2);
+    margin: 0 0.5rem;
+    margin-bottom: 1.25rem;
+    position: relative;
+}
+
+.pipeline-arrow.filled {
+    background: var(--color-4);
+}
+
+/* Upload Dropzone */
+.dropzone {
+    border: 2px dashed rgba(35, 83, 71, 0.4);
+    border-radius: 16px;
+    padding: 3.5rem 2rem;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.dropzone:hover, .dropzone.dragover {
+    border-color: var(--color-4);
+    background: rgba(218, 241, 222, 0.5);
+    box-shadow: 0 4px 20px rgba(5, 31, 32, 0.08);
+}
+
+/* Table styling */
+.dc-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.dc-table th {
+    text-align: left;
+    padding: 1rem 1.1rem;
+    color: var(--color-3);
+    border-bottom: 1px solid var(--glass-border);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
+.dc-table td {
+    padding: 0.9rem 1.1rem;
+    border-bottom: 1px solid rgba(35, 83, 71, 0.1);
+    color: var(--color-1);
+}
+
+.dc-table tr:hover td {
+    background: rgba(218, 241, 222, 0.3);
+}
+
+/* Status Badges */
+.status-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-tag.active {
+    background: rgba(35, 83, 71, 0.15);
+    color: var(--color-2);
+    border: 1px solid rgba(35, 83, 71, 0.3);
+}
+
+.status-tag.pending {
+    background: rgba(217, 119, 6, 0.12);
+    color: #92400e;
+    border: 1px solid rgba(217, 119, 6, 0.3);
+}
+
+.status-tag.inactive, .status-tag.failed {
+    background: rgba(185, 28, 28, 0.12);
+    color: #991b1b;
+    border: 1px solid rgba(185, 28, 28, 0.25);
+}
+
+.status-tag.success {
+    background: rgba(35, 83, 71, 0.15);
+    color: var(--color-2);
+    border: 1px solid rgba(35, 83, 71, 0.3);
+}
+
+/* Action button in Medora theme */
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--color-1);
+    color: var(--color-beige);
+    padding: 0.7rem 1.35rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-family: inherit;
+    font-size: 0.85rem;
+    box-shadow: 0 4px 12px rgba(5, 31, 32, 0.25);
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    background: var(--color-3);
+    color: #ffffff;
+    box-shadow: 0 6px 16px rgba(5, 31, 32, 0.35);
+}

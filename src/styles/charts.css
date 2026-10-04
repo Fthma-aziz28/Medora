@@ -1,0 +1,41 @@
+/* MEDORA Bespoke Chart Styling */
+.recharts-wrapper {
+    font-family: 'Inter', sans-serif;
+}
+
+.recharts-default-tooltip {
+    background-color: #ffffff !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    padding: 12px 16px !important;
+}
+
+.recharts-tooltip-label {
+    font-size: 12px;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px !important;
+}
+
+.recharts-cartesian-axis-tick-value {
+    font-size: 12px;
+    fill: #64748B;
+}
+
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+    stroke: #E2E8F0;
+    stroke-width: 1px;
+}
+
+/* Palette Variables for Charting */
+:root {
+    --chart-deep-ink: #172A32;
+    --chart-warm-paper: #F4F1E9;
+    --chart-muted-sage: #B7C8B2;
+    --chart-brick-red: #AD594D;
+    --chart-muted-ochre: #D6B86A;
+    --chart-neutral-grey: #8E9BA2;
+}
