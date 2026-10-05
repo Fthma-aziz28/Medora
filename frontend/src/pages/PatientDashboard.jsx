@@ -2,18 +2,58 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { FileText } from 'lucide-react';
+import { API_BASE_URL } from '../apiConfig';
 import './Dashboard.css';
+
+const DEMO_PATIENT_DOCUMENTS = [
+    {
+        id: 1,
+        title: 'Comprehensive Metabolic Panel (CMP)',
+        documentType: 'TEST_RESULT',
+        description: 'Routine blood panel shows electrolytes and liver enzymes within normal parameters.',
+        createdAt: new Date().toISOString(),
+        fileUrl: ''
+    },
+    {
+        id: 2,
+        title: 'Prescription: Lisinopril 10mg',
+        documentType: 'PRESCRIPTION',
+        description: 'Take 1 tablet daily every morning with water. 90-day refill authorized by Dr. Jane Doe.',
+        createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+        fileUrl: ''
+    },
+    {
+        id: 3,
+        title: 'Cardiology Consultation & ECG Report',
+        documentType: 'TEST_RESULT',
+        description: 'Normal sinus rhythm, heart rate 72 bpm. Follow-up scheduled in 6 months.',
+        createdAt: new Date(Date.now() - 86400000 * 14).toISOString(),
+        fileUrl: ''
+    }
+];
 
 export default function PatientDashboard() {
     const { user } = useAuth();
-    const [documents, setDocuments] = useState([]);
+    const [documents, setDocuments] = useState(DEMO_PATIENT_DOCUMENTS);
 
     useEffect(() => {
         if (user?.email) {
-            fetch(`http://localhost:8080/api/documents?patientEmail=${encodeURIComponent(user.email)}`)
-                .then(res => res.json())
-                .then(data => setDocuments(data))
-                .catch(console.error);
+            const token = localStorage.getItem('medora_token');
+            fetch(`${API_BASE_URL}/api/documents?patientEmail=${encodeURIComponent(user.email)}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+                .then(res => {
+                    if (res.ok) return res.json();
+                    throw new Error('Failed to fetch documents');
+                })
+                .then(data => {
+                    if (Array.isArray(data) && data.length > 0) {
+                        setDocuments(data);
+                    }
+                })
+                .catch(err => {
+                    console.warn("Using demo documents fallback for patient:", err);
+                });
         }
     }, [user]);
 

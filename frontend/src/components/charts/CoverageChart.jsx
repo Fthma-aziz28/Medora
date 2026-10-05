@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { API_BASE_URL } from '../../apiConfig';
 
 // Light colors from the Medora green & beige color scheme
 const LIGHT_COLORS = ['#8EB69B', '#B2D8C3', '#DAF1DE', '#D4C5B9', '#A3C9A8', '#E5DFD3'];
@@ -16,7 +17,7 @@ export default function CoverageChart() {
     const [data, setData] = useState(DEFAULT_COVERAGE);
     
     useEffect(() => {
-        fetch('http://localhost:8080/api/analytics/department-coverage')
+        fetch(`${API_BASE_URL}/api/analytics/department-coverage`)
             .then(res => {
                 if (res.ok) return res.json();
                 throw new Error("Failed to fetch department coverage");
