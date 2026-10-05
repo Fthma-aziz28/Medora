@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { API_BASE_URL } from '../../apiConfig';
 
-const data = [
+const BASE_DATA = [
     { month: 'Jan', appointments: 110 },
     { month: 'Feb', appointments: 135 },
     { month: 'Mar', appointments: 105 },
@@ -9,10 +10,47 @@ const data = [
     { month: 'May', appointments: 210 },
     { month: 'Jun', appointments: 185 },
     { month: 'Jul', appointments: 230 },
-    { month: 'Aug', appointments: 200 }
+    { month: 'Oct (Current)', appointments: 195 }
 ];
 
 export default function WaveChart() {
+    const [data, setData] = useState(BASE_DATA);
+    const [currentVolume, setCurrentVolume] = useState(195);
+    const [liveApptCount, setLiveApptCount] = useState(0);
+
+    const fetchEncounters = async () => {
+        if (!API_BASE_URL) return;
+        try {
+            const token = localStorage.getItem('medora_token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            const apptRes = await fetch(`${API_BASE_URL}/api/appointments`, { headers });
+            if (apptRes.ok) {
+                const appts = await apptRes.json();
+                if (Array.isArray(appts)) {
+                    const count = appts.length;
+                    setLiveApptCount(count);
+                    const dynamicCurrentMonth = 190 + count * 5;
+                    setCurrentVolume(dynamicCurrentMonth);
+                    setData(BASE_DATA.map(item => 
+                        item.month.startsWith('Oct') 
+                            ? { ...item, appointments: dynamicCurrentMonth } 
+                            : item
+                    ));
+                }
+            }
+        } catch (err) {
+            console.warn("WaveChart live encounters fetch error:", err);
+        }
+    };
+
+    useEffect(() => {
+        fetchEncounters();
+        const handleSync = () => fetchEncounters();
+        window.addEventListener('medora_appointment_updated', handleSync);
+        return () => window.removeEventListener('medora_appointment_updated', handleSync);
+    }, []);
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', width: '100%' }}>
             {/* Analytical Metric Header */}
@@ -22,15 +60,15 @@ export default function WaveChart() {
                         Monthly Encounters
                     </span>
                     <div style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--color-1)', fontFamily: 'var(--font-heading)', marginTop: '0.15rem' }}>
-                        200 <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--color-4)', fontFamily: 'var(--font-ui)' }}>+14.2% vs baseline</span>
+                        {currentVolume} <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--color-4)', fontFamily: 'var(--font-ui)' }}>+{liveApptCount} live bookings</span>
                     </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                     <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', fontWeight: 600 }}>
-                        Period
+                        Active Period
                     </span>
                     <div style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-1)', marginTop: '0.15rem' }}>
-                        Jan – Aug 2026
+                        Fiscal Q4 2026
                     </div>
                 </div>
             </div>

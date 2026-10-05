@@ -1,80 +1,83 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import { API_BASE_URL } from '../apiConfig';
 import './AdminCalendarOverview.css';
 
 const localizer = momentLocalizer(moment);
 
+const BASE_EVENTS = [
+    {
+        title: 'Dr. Sarah Jenkins - Emergency Ward Shift 🏥',
+        start: moment().startOf('week').add(1, 'days').set({hour: 8, minute: 0}).toDate(),
+        end: moment().startOf('week').add(1, 'days').set({hour: 16, minute: 0}).toDate(),
+        type: 'emergency'
+    },
+    {
+        title: 'Dr. Marcus Vance - Cardiology Consults 🫀',
+        start: moment().startOf('week').add(1, 'days').set({hour: 9, minute: 0}).toDate(),
+        end: moment().startOf('week').add(1, 'days').set({hour: 13, minute: 0}).toDate(),
+        type: 'cardiology'
+    },
+    {
+        title: 'Dr. Elena Rostova - Outpatient Surgery 🩺',
+        start: moment().startOf('week').add(2, 'days').set({hour: 8, minute: 30}).toDate(),
+        end: moment().startOf('week').add(2, 'days').set({hour: 14, minute: 0}).toDate(),
+        type: 'surgery'
+    },
+    {
+        title: 'Hospital Staff Sync & Shift Handover 📋',
+        start: moment().startOf('week').add(4, 'days').set({hour: 16, minute: 0}).toDate(),
+        end: moment().startOf('week').add(4, 'days').set({hour: 17, minute: 30}).toDate(),
+        type: 'sync'
+    }
+];
+
 export default function AdminCalendarOverview() {
-    const [events] = useState([
-        {
-            title: 'Dr. Sarah Jenkins - Emergency Ward Shift 🏥',
-            start: moment().startOf('week').add(1, 'days').set({hour: 8, minute: 0}).toDate(),
-            end: moment().startOf('week').add(1, 'days').set({hour: 16, minute: 0}).toDate(),
-            type: 'emergency'
-        },
-        {
-            title: 'Dr. Marcus Vance - Cardiology Consults 🫀',
-            start: moment().startOf('week').add(1, 'days').set({hour: 9, minute: 0}).toDate(),
-            end: moment().startOf('week').add(1, 'days').set({hour: 13, minute: 0}).toDate(),
-            type: 'cardiology'
-        },
-        {
-            title: 'Dr. Elena Rostova - Outpatient Surgery 🩺',
-            start: moment().startOf('week').add(2, 'days').set({hour: 8, minute: 30}).toDate(),
-            end: moment().startOf('week').add(2, 'days').set({hour: 14, minute: 0}).toDate(),
-            type: 'surgery'
-        },
-        {
-            title: 'Patient Consult - Emily Watson (General Checkup)',
-            start: moment().startOf('week').add(2, 'days').set({hour: 14, minute: 30}).toDate(),
-            end: moment().startOf('week').add(2, 'days').set({hour: 16, minute: 0}).toDate(),
-            type: 'consult'
-        },
-        {
-            title: 'Dr. Robert Chen - Pediatrics Clinic 👶',
-            start: moment().startOf('week').add(3, 'days').set({hour: 9, minute: 0}).toDate(),
-            end: moment().startOf('week').add(3, 'days').set({hour: 13, minute: 0}).toDate(),
-            type: 'pediatrics'
-        },
-        {
-            title: 'Dr. Ayesha Khan - Neurology Outpatient 🧠',
-            start: moment().startOf('week').add(3, 'days').set({hour: 13, minute: 30}).toDate(),
-            end: moment().startOf('week').add(3, 'days').set({hour: 17, minute: 30}).toDate(),
-            type: 'neurology'
-        },
-        {
-            title: 'Dr. David Miller - ICU Supervision ⚡',
-            start: moment().startOf('week').add(4, 'days').set({hour: 8, minute: 0}).toDate(),
-            end: moment().startOf('week').add(4, 'days').set({hour: 16, minute: 0}).toDate(),
-            type: 'icu'
-        },
-        {
-            title: 'Hospital Staff Sync & Shift Handover 📋',
-            start: moment().startOf('week').add(4, 'days').set({hour: 16, minute: 0}).toDate(),
-            end: moment().startOf('week').add(4, 'days').set({hour: 17, minute: 30}).toDate(),
-            type: 'sync'
-        },
-        {
-            title: 'Dr. Sarah Jenkins - Emergency Ward 🚑',
-            start: moment().startOf('week').add(5, 'days').set({hour: 8, minute: 0}).toDate(),
-            end: moment().startOf('week').add(5, 'days').set({hour: 16, minute: 0}).toDate(),
-            type: 'emergency'
-        },
-        {
-            title: 'Dr. Marcus Vance - Cardiac Procedures 🫀',
-            start: moment().startOf('week').add(5, 'days').set({hour: 10, minute: 0}).toDate(),
-            end: moment().startOf('week').add(5, 'days').set({hour: 15, minute: 0}).toDate(),
-            type: 'cardiology'
-        },
-        {
-            title: 'On-Call Emergency Duty - Dr. E. Rostova 🚨',
-            start: moment().startOf('week').add(6, 'days').set({hour: 9, minute: 0}).toDate(),
-            end: moment().startOf('week').add(6, 'days').set({hour: 17, minute: 0}).toDate(),
-            type: 'oncall'
+    const [events, setEvents] = useState(BASE_EVENTS);
+
+    const loadCalendarData = async () => {
+        if (!API_BASE_URL) return;
+        try {
+            const token = localStorage.getItem('medora_token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            const apptRes = await fetch(`${API_BASE_URL}/api/appointments`, { headers });
+            if (apptRes.ok) {
+                const appts = await apptRes.json();
+                if (Array.isArray(appts)) {
+                    const mappedAppts = appts.map(a => {
+                        const dateStr = a.appointmentDate || moment().format('YYYY-MM-DD');
+                        const startTimeStr = a.startTime ? a.startTime.substring(0, 5) : '09:00';
+                        const endTimeStr = a.endTime ? a.endTime.substring(0, 5) : '09:30';
+
+                        const startMoment = moment(`${dateStr} ${startTimeStr}`, 'YYYY-MM-DD HH:mm');
+                        const endMoment = moment(`${dateStr} ${endTimeStr}`, 'YYYY-MM-DD HH:mm');
+
+                        return {
+                            id: `appt-${a.id}`,
+                            title: `🩺 ${a.doctorName || 'Doctor'}: Consult with ${a.patientName} (${a.status || 'Confirmed'})`,
+                            start: startMoment.isValid() ? startMoment.toDate() : new Date(),
+                            end: endMoment.isValid() ? endMoment.toDate() : moment().add(30, 'minutes').toDate(),
+                            type: 'consult'
+                        };
+                    });
+
+                    setEvents([...BASE_EVENTS, ...mappedAppts]);
+                }
+            }
+        } catch (err) {
+            console.warn("Error loading calendar appointments:", err);
         }
-    ]);
+    };
+
+    useEffect(() => {
+        loadCalendarData();
+        const handleSync = () => loadCalendarData();
+        window.addEventListener('medora_appointment_updated', handleSync);
+        return () => window.removeEventListener('medora_appointment_updated', handleSync);
+    }, []);
 
     const eventStyleGetter = (event) => {
         let backgroundColor = '#8EB69B'; 

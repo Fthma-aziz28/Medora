@@ -37,6 +37,9 @@ export default function Appointments() {
 
     useEffect(() => {
         fetchAppointments();
+        const handleSync = () => fetchAppointments();
+        window.addEventListener('medora_appointment_updated', handleSync);
+        return () => window.removeEventListener('medora_appointment_updated', handleSync);
     }, []);
 
     const handleDelete = async (id) => {
@@ -53,6 +56,7 @@ export default function Appointments() {
                 console.warn("Backend delete failed, removing locally:", err);
             } finally {
                 setAppointments(prev => prev.filter(a => a.id !== id));
+                window.dispatchEvent(new Event('medora_appointment_updated'));
             }
         }
     };

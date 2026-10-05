@@ -23,7 +23,10 @@ export default function CoverageChart() {
     const [data, setData] = useState(DEFAULT_COVERAGE);
 
     useEffect(() => {
-        fetch(`${API_BASE_URL}/api/analytics/department-coverage`)
+        const token = localStorage.getItem('medora_token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+        fetch(`${API_BASE_URL}/api/analytics/department-coverage`, { headers })
             .then(res => {
                 if (res.ok) return res.json();
                 throw new Error("Failed to fetch department coverage");
@@ -39,6 +42,14 @@ export default function CoverageChart() {
     }, []);
 
     const totalAssigned = data.reduce((sum, item) => sum + (item.assigned || 0), 0);
+    const totalRequired = data.reduce((sum, item) => sum + (item.required || ((item.assigned || 0) + 40)), 0);
+    const coveragePct = totalRequired > 0 ? Math.min(100, Math.round((totalAssigned / totalRequired) * 100)) : 75;
+
+    // Ensure non-zero values for visual pie rendering
+    const pieData = data.map(item => ({
+        ...item,
+        chartValue: item.assigned > 0 ? item.assigned : 4
+    }));
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', width: '100%' }}>
@@ -49,7 +60,7 @@ export default function CoverageChart() {
                         Active Allocation
                     </span>
                     <div style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--color-1)', fontFamily: 'var(--font-heading)', marginTop: '0.15rem' }}>
-                        {totalAssigned} <span style={{ fontSize: '0.85rem', fontWeight: 400, color: 'var(--text-muted)', fontFamily: 'var(--font-ui)' }}>Physicians Deployed</span>
+                        {totalAssigned} <span style={{ fontSize: '0.85rem', fontWeight: 400, color: 'var(--text-muted)', fontFamily: 'var(--font-ui)' }}>Clinical Hours Deployed</span>
                     </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
@@ -69,18 +80,18 @@ export default function CoverageChart() {
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                             <Pie
-                                data={data}
+                                data={pieData}
                                 cx="50%"
                                 cy="50%"
                                 innerRadius={64}
                                 outerRadius={84}
                                 paddingAngle={2}
-                                dataKey="assigned"
+                                dataKey="chartValue"
                                 nameKey="name"
                                 stroke="#FFFFFF"
                                 strokeWidth={2}
                             >
-                                {data.map((entry, index) => (
+                                {pieData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={CLINICAL_PALETTE[index % CLINICAL_PALETTE.length]} />
                                 ))}
                             </Pie>
@@ -95,6 +106,7 @@ export default function CoverageChart() {
                                     padding: '0.4rem 0.75rem'
                                 }}
                                 itemStyle={{ color: '#DAF1DE' }}
+                                formatter={(val, name, entry) => [`${entry.payload.assigned} hrs`, 'Allocated']}
                             />
                         </PieChart>
                     </ResponsiveContainer>
@@ -108,7 +120,7 @@ export default function CoverageChart() {
                         pointerEvents: 'none'
                     }}>
                         <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-1)', lineHeight: 1.1 }}>
-                            84%
+                            {coveragePct}%
                         </div>
                         <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
                             Coverage

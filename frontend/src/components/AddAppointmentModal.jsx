@@ -86,11 +86,13 @@ export default function AddAppointmentModal({ isOpen, onClose, onUpdated }) {
 
             if (response.ok) {
                 alert(`Appointment successfully scheduled with ${formData.doctorName}!`);
+                window.dispatchEvent(new Event('medora_appointment_updated'));
                 if (onUpdated) onUpdated(newAppt);
                 onClose();
             } else {
                 console.warn("Backend rejected appointment, applying optimistic demo update");
                 alert(`Appointment successfully scheduled with ${formData.doctorName} (Demo Mode)!`);
+                window.dispatchEvent(new Event('medora_appointment_updated'));
                 if (onUpdated) onUpdated(newAppt);
                 onClose();
             }
@@ -103,6 +105,7 @@ export default function AddAppointmentModal({ isOpen, onClose, onUpdated }) {
                 endTime: formData.endTime + ':00'
             };
             alert(`Appointment successfully scheduled with ${formData.doctorName} (Demo Mode)!`);
+            window.dispatchEvent(new Event('medora_appointment_updated'));
             if (onUpdated) onUpdated(newAppt);
             onClose();
         } finally {

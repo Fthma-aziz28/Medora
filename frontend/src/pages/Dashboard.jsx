@@ -17,11 +17,48 @@ export default function Dashboard() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [leaves, setLeaves] = useState(DEMO_LEAVES);
+    const [doctorsCount, setDoctorsCount] = useState(42);
+    const [appointmentsCount, setAppointmentsCount] = useState(12);
     const [leaveFilter, setLeaveFilter] = useState('ALL');
     const [editingLeave, setEditingLeave] = useState(null);
 
-    useEffect(() => {
+    const fetchAllData = async () => {
         fetchLeaves();
+        fetchLiveCounts();
+    };
+
+    const fetchLiveCounts = async () => {
+        if (!API_BASE_URL) return;
+        const token = localStorage.getItem('medora_token');
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+        try {
+            const docRes = await fetch(`${API_BASE_URL}/api/doctors`, { headers });
+            if (docRes.ok) {
+                const docs = await docRes.json();
+                if (Array.isArray(docs)) setDoctorsCount(docs.length);
+            }
+        } catch (e) {
+            console.warn("Doctors count fetch error:", e);
+        }
+
+        try {
+            const apptRes = await fetch(`${API_BASE_URL}/api/appointments`, { headers });
+            if (apptRes.ok) {
+                const appts = await apptRes.json();
+                if (Array.isArray(appts)) setAppointmentsCount(appts.length);
+            }
+        } catch (e) {
+            console.warn("Appointments count fetch error:", e);
+        }
+    };
+
+    useEffect(() => {
+        fetchAllData();
+
+        const handleSync = () => fetchAllData();
+        window.addEventListener('medora_appointment_updated', handleSync);
+        return () => window.removeEventListener('medora_appointment_updated', handleSync);
     }, []);
 
     const fetchLeaves = async () => {
@@ -110,21 +147,23 @@ export default function Dashboard() {
             <section className="metrics-strip">
                 <div className="metric-strip-item">
                     <span className="metric-label">Total Credentialed Doctors</span>
-                    <div className="metric-value">42</div>
-                    <span className="metric-subtext">Active physicians across 5 core departments</span>
+                    <div className="metric-value">{doctorsCount}</div>
+                    <span className="metric-subtext">Active physicians across hospital departments</span>
                 </div>
 
                 <div className="metric-strip-item">
-                    <span className="metric-label">Active Operational Duties</span>
-                    <div className="metric-value">12</div>
-                    <span className="metric-subtext">Physicians currently scheduled on shift today</span>
+                    <span className="metric-label">Active Operational Encounters</span>
+                    <div className="metric-value">{appointmentsCount}</div>
+                    <span className="metric-subtext">Active patient clinical consultations scheduled</span>
                 </div>
 
                 <div className="metric-strip-item">
                     <span className="metric-label">Identified Coverage Gaps</span>
-                    <div className="metric-value" style={{ color: 'var(--color-1)' }}>03</div>
-                    <span className="metric-subtext" style={{ color: '#b45309' }}>
-                        <AlertCircle size={14} /> 3 shifts flagged for backfill
+                    <div className="metric-value" style={{ color: pendingCount > 0 ? '#b45309' : 'var(--color-1)' }}>
+                        {pendingCount < 10 ? `0${pendingCount}` : pendingCount}
+                    </div>
+                    <span className="metric-subtext" style={{ color: pendingCount > 0 ? '#b45309' : 'var(--text-muted)' }}>
+                        <AlertCircle size={14} /> {pendingCount} absence requests pending coverage
                     </span>
                 </div>
             </section>
