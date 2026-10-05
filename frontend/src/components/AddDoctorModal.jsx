@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { X, Save } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Check } from 'lucide-react';
 import { API_BASE_URL } from '../apiConfig';
 import './AddDoctorModal.css';
 
@@ -47,63 +47,151 @@ export default function AddDoctorModal({ isOpen, onClose, onDoctorAdded }) {
     };
 
     return (
-        <div className="modal-overlay">
-            <motion.div 
-                className="glass-panel modal-content"
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            >
-                <div className="modal-header">
-                    <h2>Onboard New Doctor</h2>
-                    <button className="close-btn" onClick={onClose}><X size={20} /></button>
-                </div>
-                <form onSubmit={handleSubmit} className="doctor-form">
-                    <div className="form-group">
-                        <label>Full Name</label>
-                        <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
-                    </div>
-                    <div className="form-group">
-                        <label>Specialty</label>
-                        <input type="text" required value={formData.specialty} onChange={e => setFormData({...formData, specialty: e.target.value})} placeholder="e.g. Cardiology, Pediatrics" />
-                    </div>
-                    <div className="form-group">
-                        <label>Email Address</label>
-                        <input type="email" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
-                    </div>
-                    <div className="form-group">
-                        <label>Temporary Password</label>
-                        <input type="password" required value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
-                    </div>
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Department ID</label>
-                            <input type="number" required value={formData.departmentId} onChange={e => setFormData({...formData, departmentId: parseInt(e.target.value)})} />
+        <AnimatePresence>
+            <div className="doctor-modal-overlay">
+                <motion.div 
+                    className="doctor-modal-card"
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 12 }}
+                    transition={{ duration: 0.15 }}
+                >
+                    {/* Header */}
+                    <div className="doctor-modal-header">
+                        <div>
+                            <h2>Physician Onboarding</h2>
+                            <p>Credential and assign clinical shifts to a new doctor</p>
                         </div>
-                        <div className="form-group">
-                            <label>Slot Mins</label>
-                            <input type="number" required value={formData.slotMins} onChange={e => setFormData({...formData, slotMins: parseInt(e.target.value)})} />
-                        </div>
+                        <button className="doctor-modal-close" onClick={onClose} aria-label="Close">
+                            <X size={18} />
+                        </button>
                     </div>
-                    <div className="form-group">
-                        <label>Working Days</label>
-                        <input type="text" required value={formData.workingDays} onChange={e => setFormData({...formData, workingDays: e.target.value})} />
-                    </div>
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Start Time</label>
-                            <input type="time" required value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} />
+
+                    {/* Form */}
+                    <form onSubmit={handleSubmit}>
+                        <div className="doctor-modal-body">
+                            {/* Section 01: Clinical Identity */}
+                            <div className="modal-section">
+                                <div className="modal-section-title">01 / Clinical Identity</div>
+                                <div className="modal-input-group">
+                                    <label>Physician Full Name</label>
+                                    <input 
+                                        type="text" 
+                                        required 
+                                        value={formData.name} 
+                                        onChange={e => setFormData({...formData, name: e.target.value})} 
+                                        placeholder="e.g. Dr. Sarah Al-Mansoor"
+                                    />
+                                </div>
+                                <div className="modal-grid-2">
+                                    <div className="modal-input-group">
+                                        <label>Clinical Specialty</label>
+                                        <input 
+                                            type="text" 
+                                            required 
+                                            value={formData.specialty} 
+                                            onChange={e => setFormData({...formData, specialty: e.target.value})} 
+                                            placeholder="e.g. Cardiology" 
+                                        />
+                                    </div>
+                                    <div className="modal-input-group">
+                                        <label>Official Email</label>
+                                        <input 
+                                            type="email" 
+                                            required 
+                                            value={formData.email} 
+                                            onChange={e => setFormData({...formData, email: e.target.value})} 
+                                            placeholder="doctor@medora.org"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Section 02: Scheduling & Roster */}
+                            <div className="modal-section">
+                                <div className="modal-section-title">02 / Scheduling & Shift Configuration</div>
+                                <div className="modal-input-group">
+                                    <label>Active Working Days</label>
+                                    <input 
+                                        type="text" 
+                                        required 
+                                        value={formData.workingDays} 
+                                        onChange={e => setFormData({...formData, workingDays: e.target.value})} 
+                                        placeholder="Mon-Fri, or Mon, Wed, Fri"
+                                    />
+                                </div>
+                                <div className="modal-grid-2">
+                                    <div className="modal-input-group">
+                                        <label>Shift Start Time</label>
+                                        <input 
+                                            type="time" 
+                                            required 
+                                            value={formData.startTime} 
+                                            onChange={e => setFormData({...formData, startTime: e.target.value})} 
+                                        />
+                                    </div>
+                                    <div className="modal-input-group">
+                                        <label>Shift End Time</label>
+                                        <input 
+                                            type="time" 
+                                            required 
+                                            value={formData.endTime} 
+                                            onChange={e => setFormData({...formData, endTime: e.target.value})} 
+                                        />
+                                    </div>
+                                </div>
+                                <div className="modal-input-group">
+                                    <label>Consultation Slot Duration (Minutes)</label>
+                                    <input 
+                                        type="number" 
+                                        min="10"
+                                        max="120"
+                                        required 
+                                        value={formData.slotMins} 
+                                        onChange={e => setFormData({...formData, slotMins: parseInt(e.target.value) || 30})} 
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Section 03: Access & Credentials */}
+                            <div className="modal-section">
+                                <div className="modal-section-title">03 / Department & Access</div>
+                                <div className="modal-grid-2">
+                                    <div className="modal-input-group">
+                                        <label>Department ID</label>
+                                        <input 
+                                            type="number" 
+                                            required 
+                                            value={formData.departmentId} 
+                                            onChange={e => setFormData({...formData, departmentId: parseInt(e.target.value) || 1})} 
+                                        />
+                                    </div>
+                                    <div className="modal-input-group">
+                                        <label>Initial Temporary Password</label>
+                                        <input 
+                                            type="password" 
+                                            required 
+                                            value={formData.password} 
+                                            onChange={e => setFormData({...formData, password: e.target.value})} 
+                                            placeholder="••••••••"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div className="form-group">
-                            <label>End Time</label>
-                            <input type="time" required value={formData.endTime} onChange={e => setFormData({...formData, endTime: e.target.value})} />
+
+                        {/* Footer */}
+                        <div className="doctor-modal-footer">
+                            <button type="button" className="btn-secondary" onClick={onClose}>
+                                Cancel
+                            </button>
+                            <button type="submit" className="btn-submit-doctor">
+                                <Check size={16} /> Complete Onboarding
+                            </button>
                         </div>
-                    </div>
-                    <button type="submit" className="submit-btn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                        <Save size={18} /> Complete Onboarding
-                    </button>
-                </form>
-            </motion.div>
-        </div>
+                    </form>
+                </motion.div>
+            </div>
+        </AnimatePresence>
     );
 }

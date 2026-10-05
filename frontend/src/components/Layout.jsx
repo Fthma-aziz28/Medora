@@ -134,29 +134,32 @@ export default function Layout() {
                 <header className="top-navbar">
                     <div className="top-navbar-left">
                         <button onClick={() => setMobileMenuOpen(true)} className="mobile-toggle-btn" aria-label="Toggle menu">
-                            <Menu size={22} />
+                            <Menu size={20} />
                         </button>
                         <div className="breadcrumb-trail">
                             <span className="breadcrumb-root">MEDORA</span>
-                            <ChevronRight size={14} className="breadcrumb-sep" />
+                            <span className="breadcrumb-sep">/</span>
                             <span className="breadcrumb-current">{pageTitle}</span>
                         </div>
                     </div>
 
                     <div className="top-navbar-right">
-                        <div className="header-status-badge">
-                            <Activity size={14} color="var(--color-4)" />
-                            <span>Fairness Engine Active</span>
+                        <div className="status-indicator-clean">
+                            <span className="status-dot-active" />
+                            <span>FAIRNESS ENGINE ACTIVE</span>
                         </div>
 
-                        <div className="header-shift-badge">
-                            <Clock size={14} color="var(--color-3)" />
+                        <div className="navbar-rule" />
+
+                        <div className="navbar-shift-text">
+                            <Clock size={13} strokeWidth={1.75} />
                             <span>{todayFormatted} • Shift: 08:00 - 16:00</span>
                         </div>
 
-                        <div className="header-role-badge">
-                            <ShieldCheck size={14} color="var(--color-1)" />
-                            <span>{user?.role || 'USER'}</span>
+                        <div className="navbar-rule" />
+
+                        <div className="navbar-role-text">
+                            <span>{user?.role || 'ADMIN'}</span>
                         </div>
                     </div>
                 </header>

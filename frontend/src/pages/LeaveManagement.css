@@ -1,12 +1,10 @@
-/* MEDORA Leave Management - Pure Forest & Sage Palette */
+/* MEDORA Leave Management - Editorial Restraint */
+
 .leave-management .table-wrapper {
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: #FFFFFF;
     margin-top: 1.5rem;
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
-    border-radius: 14px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
     overflow-x: auto;
 }
 
@@ -18,109 +16,109 @@
 
 .leave-management .desktop-only th, 
 .leave-management .desktop-only td {
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid rgba(35, 83, 71, 0.12);
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .leave-management .desktop-only th {
-    background-color: rgba(35, 83, 71, 0.08);
-    color: var(--color-3);
+    background-color: var(--color-surface-subtle);
+    color: var(--text-muted);
     font-weight: 600;
-    font-size: 0.8rem;
+    font-size: 0.72rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.08em;
 }
 
 .leave-management .desktop-only td {
     color: var(--color-1);
+    font-size: 0.875rem;
 }
 
 .leave-management .desktop-only tr:hover td {
-    background-color: rgba(218, 241, 222, 0.25);
+    background-color: rgba(5, 31, 32, 0.015);
 }
 
 .status-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
-    padding: 0.25rem 0.65rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
+    gap: 0.35rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    font-size: 0.72rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.04em;
 }
 
 .status-badge.approved {
-    background-color: rgba(35, 83, 71, 0.15);
-    color: var(--color-2);
-    border: 1px solid rgba(35, 83, 71, 0.35);
+    background-color: rgba(35, 83, 71, 0.12);
+    color: var(--color-4);
+    border: 1px solid rgba(35, 83, 71, 0.25);
 }
 
 .status-badge.pending {
-    background-color: rgba(217, 119, 6, 0.12);
+    background-color: rgba(217, 119, 6, 0.1);
     color: #b45309;
-    border: 1px solid rgba(217, 119, 6, 0.3);
+    border: 1px solid rgba(217, 119, 6, 0.2);
 }
 
 .status-badge.rejected {
-    background-color: rgba(185, 28, 28, 0.12);
+    background-color: rgba(185, 28, 28, 0.08);
     color: #b91c1c;
-    border: 1px solid rgba(185, 28, 28, 0.25);
+    border: 1px solid rgba(185, 28, 28, 0.2);
 }
 
 .action-buttons {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.4rem;
 }
 
 .approve-btn, .reject-btn {
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
-    padding: 0.45rem 0.85rem;
-    border-radius: 6px;
-    border: none;
-    font-size: 0.8rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.15s ease;
     font-family: inherit;
 }
 
 .approve-btn {
-    background-color: var(--color-4);
-    color: var(--color-beige);
-    box-shadow: 0 2px 6px rgba(5, 31, 32, 0.15);
+    background-color: var(--color-1);
+    color: #FAF9F5;
+    border: 1px solid var(--color-1);
 }
+
 .approve-btn:hover { 
-    background-color: var(--color-3); 
-    color: #ffffff;
+    background-color: var(--color-2); 
+    border-color: var(--color-2);
 }
 
 .reject-btn {
-    background-color: rgba(185, 28, 28, 0.1);
+    background-color: transparent;
     color: #b91c1c;
     border: 1px solid rgba(185, 28, 28, 0.25);
 }
+
 .reject-btn:hover { 
-    background-color: rgba(185, 28, 28, 0.2); 
+    background-color: rgba(185, 28, 28, 0.06); 
 }
 
-/* Mobile View - Compact Cards */
+/* Mobile View - Editorial Cards */
 .mobile-cards {
     display: none;
     padding: 1rem;
 }
 
 .mobile-card {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    backdrop-filter: blur(12px);
-    border-radius: 12px;
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
     margin-bottom: 1rem;
-    padding: 1.25rem;
-    box-shadow: var(--glass-shadow);
+    padding: 1rem;
 }
 
 .card-header {
@@ -128,37 +126,38 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.75rem;
-    border-bottom: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--border-subtle);
     padding-bottom: 0.5rem;
 }
 
 .card-title {
     font-weight: 600;
     color: var(--color-1);
-    font-size: 1rem;
+    font-size: 0.95rem;
 }
 
 .info-row {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem;
+    margin-bottom: 0.45rem;
+    font-size: 0.85rem;
 }
 
-.info-row .label { color: var(--color-3); }
+.info-row .label { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
 .info-row .value { color: var(--color-1); font-weight: 500; }
 
 .card-actions {
-    margin-top: 1rem;
+    margin-top: 0.85rem;
     display: flex;
     gap: 0.5rem;
-    border-top: 1px solid var(--glass-border);
-    padding-top: 1rem;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 0.75rem;
 }
+
 .card-actions button { flex: 1; justify-content: center; }
 
 @media (max-width: 768px) {
     .leave-management .desktop-only { display: none; }
     .leave-management .mobile-cards { display: block; }
-    .leave-management .table-wrapper { border: none; background: transparent; box-shadow: none; }
+    .leave-management .table-wrapper { border: none; background: transparent; }
 }

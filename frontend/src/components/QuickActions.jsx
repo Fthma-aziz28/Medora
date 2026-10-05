@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, Users, CalendarPlus, Bell } from 'lucide-react';
+import { CalendarPlus, FileText, Users, UploadCloud, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function QuickActions({ onOpenUpload }) {
@@ -7,37 +7,33 @@ export default function QuickActions({ onOpenUpload }) {
     
     const actions = [
         {
-            title: 'Schedule Surgery',
-            icon: <CalendarPlus size={24} />,
-            color: 'var(--color-1)',
-            bg: 'var(--color-6)',
+            title: 'Schedule Appointment',
+            subtitle: 'Book physician slot',
+            icon: <CalendarPlus size={18} />,
             path: '/app/appointments'
         },
         {
-            title: 'Approve Leaves',
-            icon: <FileText size={24} />,
-            color: 'var(--color-6)',
-            bg: 'var(--color-4)',
+            title: 'Review Leave Requests',
+            subtitle: 'Authorize absence',
+            icon: <FileText size={18} />,
             path: '/app/leave'
         },
         {
             title: 'Manage Duty Roster',
-            icon: <Users size={24} />,
-            color: 'var(--color-1)',
-            bg: 'var(--color-5)',
+            subtitle: 'Shift allocations',
+            icon: <Users size={18} />,
             path: '/app/roster'
         },
         {
             title: 'Upload Document',
-            icon: <FileText size={24} />,
-            color: 'var(--color-6)',
-            bg: 'var(--color-2)',
+            subtitle: 'Clinical credential / log',
+            icon: <UploadCloud size={18} />,
             path: 'UPLOAD'
         }
     ];
 
     return (
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem', width: '100%' }}>
             {actions.map((action, idx) => (
                 <button 
                     key={idx}
@@ -49,29 +45,50 @@ export default function QuickActions({ onOpenUpload }) {
                         }
                     }}
                     style={{
-                        flex: '1 1 calc(25% - 1rem)',
-                        minWidth: '150px',
                         display: 'flex',
-                        flexDirection: 'column',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.75rem',
-                        padding: '1.5rem',
-                        backgroundColor: action.bg,
-                        color: action.color,
-                        border: 'none',
-                        borderRadius: '12px',
-                        cursor: action.path !== '#' ? 'pointer' : 'default',
-                        boxShadow: '0 4px 12px rgba(5,31,32,0.15)',
-                        transition: 'transform 0.2s, boxShadow 0.2s',
+                        justifyContent: 'space-between',
+                        padding: '0.85rem 1rem',
+                        backgroundColor: '#FFFFFF',
+                        border: '1px solid var(--border-subtle)',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        textAlign: 'left',
                         fontFamily: 'inherit',
-                        fontWeight: '600'
+                        transition: 'border-color 0.15s ease, background-color 0.15s ease'
                     }}
-                    onMouseOver={(e) => { if(action.path !== '#') e.currentTarget.style.transform = 'translateY(-2px)' }}
-                    onMouseOut={(e) => { if(action.path !== '#') e.currentTarget.style.transform = 'translateY(0)' }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--border-strong)';
+                        e.currentTarget.style.backgroundColor = 'var(--color-surface-subtle)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                        e.currentTarget.style.backgroundColor = '#FFFFFF';
+                    }}
                 >
-                    {action.icon}
-                    <span>{action.title}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={{
+                            width: 32,
+                            height: 32,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: '4px',
+                            backgroundColor: 'rgba(5, 31, 32, 0.05)',
+                            color: 'var(--color-1)'
+                        }}>
+                            {action.icon}
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-1)' }}>
+                                {action.title}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>
+                                {action.subtitle}
+                            </div>
+                        </div>
+                    </div>
+                    <ArrowUpRight size={15} color="var(--text-muted)" />
                 </button>
             ))}
         </div>

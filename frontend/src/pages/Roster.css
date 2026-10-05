@@ -1,17 +1,16 @@
-.roster-container {
-    animation: fadeIn 0.2s ease-out;
-}
+/* Roster Editorial Layout */
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+.roster-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
 }
 
 .table-wrapper {
-    background: white;
-    margin-top: 2rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
     overflow-x: auto;
 }
 
@@ -22,34 +21,44 @@
 }
 
 .medora-table th, .medora-table td {
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid #f1f5f9;
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .medora-table th {
-    background-color: #f8fafc;
-    color: #8E9BA2;
-    font-weight: 500;
-    font-size: 0.875rem;
+    background-color: var(--color-surface-subtle);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.72rem;
     text-transform: uppercase;
+    letter-spacing: 0.08em;
 }
 
 .medora-table td {
-    color: #172A32;
-    font-size: 0.95rem;
+    color: var(--color-1);
+    font-size: 0.875rem;
+}
+
+.medora-table tbody tr:hover {
+    background-color: rgba(5, 31, 32, 0.015);
+}
+
+.medora-table tbody tr:last-child td {
+    border-bottom: none;
 }
 
 .status-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
     font-size: 0.75rem;
-    font-weight: 500;
-    text-transform: capitalize;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
 .status-badge.confirmed {
-    background-color: #e0f2fe;
-    color: #0369a1;
+    background-color: var(--color-6);
+    color: var(--color-4);
 }
 
 .status-badge.pending {
@@ -62,7 +71,7 @@
     color: #b91c1c;
 }
 
-/* Mobile responsive tables - Compact Cards */
+/* Mobile responsive tables */
 @media (max-width: 768px) {
     .table-wrapper {
         border: none;
@@ -81,18 +90,18 @@
     
     .medora-table tr {
         margin-bottom: 1rem;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
+        border: 1px solid var(--border-subtle);
+        border-radius: 4px;
         padding: 1rem;
-        background: white;
+        background: #FFFFFF;
     }
     
     .medora-table td {
         text-align: right;
-        padding: 0.75rem 0;
-        border-bottom: 1px solid #f1f5f9;
+        padding: 0.6rem 0;
+        border-bottom: 1px solid var(--border-subtle);
         position: relative;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
     }
     
     .medora-table td:last-child {
@@ -106,9 +115,9 @@
         width: 45%;
         padding-right: 10px;
         text-align: left;
-        font-weight: 500;
-        color: #8E9BA2;
+        font-weight: 600;
+        color: var(--text-muted);
         text-transform: uppercase;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
     }
 }

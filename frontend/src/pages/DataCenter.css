@@ -1,15 +1,15 @@
-/* MEDORA Data Center Styles - Pure Forest & Sage Palette */
+/* MEDORA Data Center Styles - Editorial Healthcare Identity */
 .datacenter-container {
-    padding: 1rem 0;
+    padding: 0.5rem 0;
     max-width: 1400px;
     margin: 0 auto;
 }
 
 .datacenter-tabs {
     display: flex;
-    gap: 0.75rem;
-    margin: 1.5rem 0;
-    border-bottom: 1px solid var(--glass-border);
+    gap: 0.5rem;
+    margin: 1.25rem 0;
+    border-bottom: 1px solid var(--border-subtle);
     padding-bottom: 0.75rem;
     flex-wrap: wrap;
 }
@@ -17,45 +17,44 @@
 .tab-btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.65rem 1.25rem;
-    background: rgba(255, 255, 255, 0.4);
-    border: 1px solid var(--glass-border);
-    border-radius: 8px;
-    color: var(--color-3);
+    gap: 0.45rem;
+    padding: 0.5rem 1rem;
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    color: var(--text-secondary);
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 0.9rem;
+    transition: all 0.15s ease;
+    font-size: 0.85rem;
     font-family: inherit;
 }
 
 .tab-btn:hover {
-    background: var(--color-6);
+    background: var(--color-surface-subtle);
     color: var(--color-1);
-    border-color: var(--color-4);
+    border-color: var(--border-strong);
 }
 
 .tab-btn.active {
-    background: var(--color-4);
-    color: var(--color-beige);
-    border-color: var(--color-3);
+    background: var(--color-1);
+    color: #FAF9F5;
+    border-color: var(--color-1);
     font-weight: 600;
-    box-shadow: 0 4px 12px rgba(5, 31, 32, 0.2);
 }
 
 .badge-count {
-    background: rgba(35, 83, 71, 0.2);
+    background: rgba(5, 31, 32, 0.08);
     color: var(--color-1);
-    font-size: 0.75rem;
-    padding: 0.15rem 0.5rem;
-    border-radius: 12px;
-    font-weight: 700;
+    font-size: 0.7rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 3px;
+    font-weight: 600;
 }
 
 .tab-btn.active .badge-count {
-    background: var(--color-6);
-    color: var(--color-1);
+    background: rgba(255, 255, 255, 0.2);
+    color: #FAF9F5;
 }
 
 /* Pipeline visualization */
@@ -63,14 +62,12 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
-    border-radius: 14px;
-    padding: 1.25rem 1.75rem;
-    margin-bottom: 2rem;
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.75rem;
     overflow-x: auto;
-    backdrop-filter: blur(12px);
 }
 
 .pipeline-step {
@@ -83,38 +80,37 @@
 }
 
 .step-node {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.85rem;
-    font-weight: 700;
-    background: rgba(255, 255, 255, 0.6);
-    color: var(--color-3);
-    border: 2px solid var(--color-5);
-    transition: all 0.3s ease;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: var(--color-surface-subtle);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    transition: all 0.2s ease;
 }
 
 .pipeline-step.active .step-node {
-    background: var(--color-4);
-    color: var(--color-beige);
-    border-color: var(--color-2);
-    box-shadow: 0 0 15px rgba(35, 83, 71, 0.35);
+    background: var(--color-1);
+    color: #FAF9F5;
+    border-color: var(--color-1);
 }
 
 .pipeline-step.completed .step-node {
-    background: var(--color-5);
-    color: var(--color-1);
+    background: var(--color-6);
+    color: var(--color-4);
     border-color: var(--color-4);
 }
 
 .step-label {
-    font-size: 0.75rem;
-    color: var(--color-3);
+    font-size: 0.7rem;
+    color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.08em;
     font-weight: 600;
 }
 
@@ -125,60 +121,59 @@
 
 .pipeline-arrow {
     flex: 1;
-    height: 2px;
-    background: rgba(35, 83, 71, 0.2);
+    height: 1px;
+    background: var(--border-subtle);
     margin: 0 0.5rem;
-    margin-bottom: 1.25rem;
-    position: relative;
+    margin-bottom: 1.15rem;
 }
 
 .pipeline-arrow.filled {
-    background: var(--color-4);
+    background: var(--color-1);
 }
 
 /* Upload Dropzone */
 .dropzone {
-    border: 2px dashed rgba(35, 83, 71, 0.4);
-    border-radius: 16px;
-    padding: 3.5rem 2rem;
+    border: 1px dashed var(--border-medium);
+    border-radius: 4px;
+    padding: 3rem 2rem;
     text-align: center;
-    background: rgba(255, 255, 255, 0.3);
+    background: #FFFFFF;
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.15s ease;
 }
 
 .dropzone:hover, .dropzone.dragover {
-    border-color: var(--color-4);
-    background: rgba(218, 241, 222, 0.5);
-    box-shadow: 0 4px 20px rgba(5, 31, 32, 0.08);
+    border-color: var(--color-1);
+    background: var(--color-surface-subtle);
 }
 
 /* Table styling */
 .dc-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .dc-table th {
     text-align: left;
-    padding: 1rem 1.1rem;
-    color: var(--color-3);
-    border-bottom: 1px solid var(--glass-border);
+    padding: 0.85rem 1.1rem;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-subtle);
+    background-color: var(--color-surface-subtle);
     font-weight: 600;
     text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
 }
 
 .dc-table td {
-    padding: 0.9rem 1.1rem;
-    border-bottom: 1px solid rgba(35, 83, 71, 0.1);
+    padding: 0.85rem 1.1rem;
+    border-bottom: 1px solid var(--border-subtle);
     color: var(--color-1);
 }
 
 .dc-table tr:hover td {
-    background: rgba(218, 241, 222, 0.3);
+    background: rgba(5, 31, 32, 0.015);
 }
 
 /* Status Badges */
@@ -186,56 +181,49 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    padding: 0.25rem 0.65rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    font-size: 0.72rem;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
-.status-tag.active {
-    background: rgba(35, 83, 71, 0.15);
-    color: var(--color-2);
-    border: 1px solid rgba(35, 83, 71, 0.3);
+.status-tag.active, .status-tag.success {
+    background: rgba(35, 83, 71, 0.12);
+    color: var(--color-4);
+    border: 1px solid rgba(35, 83, 71, 0.25);
 }
 
 .status-tag.pending {
-    background: rgba(217, 119, 6, 0.12);
-    color: #92400e;
-    border: 1px solid rgba(217, 119, 6, 0.3);
+    background: rgba(217, 119, 6, 0.1);
+    color: #b45309;
+    border: 1px solid rgba(217, 119, 6, 0.2);
 }
 
 .status-tag.inactive, .status-tag.failed {
-    background: rgba(185, 28, 28, 0.12);
-    color: #991b1b;
-    border: 1px solid rgba(185, 28, 28, 0.25);
-}
-
-.status-tag.success {
-    background: rgba(35, 83, 71, 0.15);
-    color: var(--color-2);
-    border: 1px solid rgba(35, 83, 71, 0.3);
+    background: rgba(185, 28, 28, 0.08);
+    color: #b91c1c;
+    border: 1px solid rgba(185, 28, 28, 0.2);
 }
 
 /* Action button in Medora theme */
 .action-btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.45rem;
     background: var(--color-1);
-    color: var(--color-beige);
-    padding: 0.7rem 1.35rem;
-    border-radius: 8px;
-    border: none;
+    color: #FAF9F5;
+    padding: 0.6rem 1.15rem;
+    border-radius: 4px;
+    border: 1px solid var(--color-1);
     cursor: pointer;
     font-weight: 600;
     font-family: inherit;
     font-size: 0.85rem;
-    box-shadow: 0 4px 12px rgba(5, 31, 32, 0.25);
-    transition: all 0.2s ease;
+    transition: background-color 0.15s ease;
 }
 
 .action-btn:hover {
-    background: var(--color-3);
-    color: #ffffff;
-    box-shadow: 0 6px 16px rgba(5, 31, 32, 0.35);
+    background: var(--color-2);
 }

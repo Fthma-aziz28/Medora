@@ -1,20 +1,31 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 
 :root {
-    --color-1: #051F20;
-    --color-2: #0B2B26;
-    --color-3: #163832;
-    --color-4: #235347;
-    --color-5: #8EB69B;
-    --color-6: #DAF1DE;
-    --color-beige: #f3efe6;
-
-    --glass-bg: rgba(218, 241, 222, 0.4); /* #DAF1DE with opacity */
-    --glass-border: rgba(35, 83, 71, 0.2);
-    --glass-shadow: 0 8px 32px 0 rgba(5, 31, 32, 0.15);
+    /* Medora Core Palette (Editorial Healthcare Identity) */
+    --color-1: #051F20;        /* Deep Primary Teal */
+    --color-2: #0B2B26;        /* Dark Spruce */
+    --color-3: #163832;        /* Pine / Secondary Text */
+    --color-4: #235347;        /* Forest Emerald / Accent */
+    --color-5: #8EB69B;        /* Muted Sage */
+    --color-6: #DAF1DE;        /* Pale Mint Highlight */
+    --color-beige: #F5F5ED;    /* Warm Ivory / Off-White */
+    --color-surface: #FFFFFF;  /* Crisp Sheet Background */
+    --color-surface-subtle: #F6F5EE; /* Slightly Tinted Operational Area */
     
+    /* Restrained Border Language (1px low-contrast rules) */
+    --border-subtle: rgba(5, 31, 32, 0.08);
+    --border-medium: rgba(5, 31, 32, 0.16);
+    --border-strong: rgba(5, 31, 32, 0.28);
+    --glass-border: rgba(5, 31, 32, 0.1);
+    --glass-bg: #FFFFFF;
+    --glass-shadow: 0 1px 3px rgba(5, 31, 32, 0.03);
+    
+    /* Typography Hierarchy */
     --text-primary: #051F20;
-    --text-secondary: #163832;
+    --text-secondary: #2C4A45;
+    --text-muted: #5C7772;
+    --font-heading: 'Playfair Display', Georgia, serif;
+    --font-ui: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 html {
@@ -31,12 +42,11 @@ body {
     max-width: 100vw;
     overflow-x: hidden;
     position: relative;
-    font-family: 'Montserrat', sans-serif;
+    font-family: var(--font-ui);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: var(--text-primary);
-    background: linear-gradient(135deg, #DAF1DE 0%, #f3efe6 50%, #d8ebd9 100%);
-    background-attachment: fixed;
+    background-color: var(--color-beige);
     min-height: 100vh;
 }
 
@@ -46,22 +56,32 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
     margin: 0;
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-heading);
     color: var(--color-1);
+    font-weight: 600;
+    letter-spacing: -0.01em;
 }
 
+/* Editorial Structural Containers (No excessive rounded blobs) */
+.editorial-panel {
+    background: var(--color-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    padding: 1.5rem;
+    box-shadow: none;
+}
+
+/* Legacy fallback with refined restraint */
 .glass-panel {
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
-    border-radius: 16px;
+    background: var(--color-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    box-shadow: none;
 }
 
 .brand-logo {
     color: var(--color-beige) !important;
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-heading);
     font-weight: 700;
     letter-spacing: 2px;
 }
@@ -77,80 +97,17 @@ img, svg, canvas {
     max-width: 100%;
 }
 
-:root {
-  --background: var(--neutral-0);
-  --foreground: var(--neutral-11);
-  --accent: oklch(33% 0 0);
-  --accent-foreground: var(--background);
-  --border: oklch(93.5% 0 0);
-  --neutral-0: oklch(100% 0 0);
-  --neutral-1: oklch(99% 0 0);
-  --neutral-2: oklch(97.8% 0 0);
-  --neutral-3: oklch(95.8% 0 0);
-  --neutral-4: oklch(91.5% 0 0);
-  --neutral-5: oklch(84% 0 0);
-  --neutral-6: oklch(72% 0 0);
-  --neutral-7: oklch(59% 0 0);
-  --neutral-8: oklch(46% 0 0);
-  --neutral-9: oklch(34% 0 0);
-  --neutral-10: oklch(23% 0 0);
-  --neutral-11: oklch(15% 0 0);
-  --surface: var(--neutral-0);
-  --surface-raised: var(--neutral-0);
-  --surface-muted: var(--neutral-2);
-  --text-muted: var(--neutral-7);
-  --border-subtle: oklch(96.5% 0 0);
-  --border-strong: oklch(82% 0 0);
-  --accent-strong: oklch(24% 0 0);
-  --accent-subtle: oklch(33% 0 0 / .1);
-  --focus-ring: transparent;
-  --success: oklch(49% .19 150);
-  --warning: oklch(58% .18 75);
-  --danger: oklch(54% .21 25);
-  --shadow-resting: 0 1px 2px oklch(0% 0 0 / .035);
-  --shadow-raised: 0 6px 18px oklch(0% 0 0 / .065), 0 1px 3px oklch(0% 0 0 / .035);
-  --shadow-floating: 0 20px 48px oklch(0% 0 0 / .105), 0 3px 10px oklch(0% 0 0 / .045);
-  --space-1: .25rem;
-  --space-2: .5rem;
-  --space-3: .75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
-  --space-16: 4rem;
-  --space-20: 5rem;
-  --space-24: 6rem;
-  --radius-control: 1.125rem;
-  --radius-panel: 1.625rem;
-  --radius-surface: 2.125rem;
-  --radius-pill: 9999px;
-  --control-height-sm: 2.25rem;
-  --control-height-md: 2.75rem;
-  --control-height-lg: 3.125rem;
-  --text-xs: .75rem;
-  --text-sm: .875rem;
-  --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.375rem;
-  --text-2xl: 1.75rem;
-  --text-3xl: 2.25rem;
-  --text-4xl: 3.25rem;
-  --text-5xl: 4.5rem;
-  --tracking-display: -.03em;
-  --tracking-body: -.01em;
-  --leading-display: 1.1;
-  --leading-body: 1.4;
-  --ease-enter: cubic-bezier(.16,1,.3,1);
-  --ease-standard: cubic-bezier(.22,1,.36,1);
-  --ease-exit: cubic-bezier(.7,0,.84,0);
-  --ease-in-out: cubic-bezier(.65,0,.35,1);
-  --duration-instant: 120ms;
-  --duration-fast: 160ms;
-  --duration-standard: 240ms;
-  --duration-considered: 480ms;
-  --duration-spring: 580ms;
+/* Tabular figures for operational numerical clarity */
+.tabular-nums {
+    font-variant-numeric: tabular-nums;
 }
 
-
+/* Accessibility: respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

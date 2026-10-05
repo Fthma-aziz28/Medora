@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import CoverageChart from '../components/charts/CoverageChart';
@@ -7,7 +7,7 @@ import QuickActions from '../components/QuickActions';
 import AddDoctorModal from '../components/AddDoctorModal';
 import UploadDocumentModal from '../components/UploadDocumentModal';
 import EditLeaveModal from '../components/EditLeaveModal';
-import { Plus, Check, X, MessageSquare, Edit3, Calendar, FileText } from 'lucide-react';
+import { Plus, Check, X, Calendar, Edit3, AlertCircle } from 'lucide-react';
 import { API_BASE_URL } from '../apiConfig';
 import { DEMO_LEAVES } from '../demoData';
 import './Dashboard.css';
@@ -18,11 +18,9 @@ export default function Dashboard() {
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [leaves, setLeaves] = useState(DEMO_LEAVES);
     const [leaveFilter, setLeaveFilter] = useState('ALL');
-    const [comment, setComment] = useState('');
-    const [activeCommentId, setActiveCommentId] = useState(null);
     const [editingLeave, setEditingLeave] = useState(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         fetchLeaves();
     }, []);
 
@@ -65,230 +63,227 @@ export default function Dashboard() {
             console.warn("Backend update failed, applying locally:", error);
         } finally {
             setLeaves(prev => prev.map(l => l.id === id ? { ...l, status } : l));
-            setActiveCommentId(null);
-            setComment('');
             if (status === 'APPROVED') {
                 navigate(`/app/emergency-allocation/${id}`);
             }
         }
     };
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.08 }
-        }
-    };
+    const displayedLeaves = leaves.filter(l => {
+        const s = (l.status || '').toUpperCase();
+        if (leaveFilter === 'ALL') return true;
+        return s === leaveFilter;
+    });
 
-    const itemVariants = {
-        hidden: { opacity: 0 },
-        visible: { opacity: 1, transition: { duration: 0.2 } }
-    };
+    const pendingCount = leaves.filter(l => (l.status || '').toUpperCase() === 'PENDING').length;
+    const approvedCount = leaves.filter(l => (l.status || '').toUpperCase() === 'APPROVED').length;
+    const rejectedCount = leaves.filter(l => (l.status || '').toUpperCase() === 'REJECTED').length;
 
     return (
         <motion.div 
             className="dashboard-container"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            style={{ width: '100%', minWidth: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
         >
-            <motion.header className="page-header" variants={itemVariants}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                        <h1 style={{ fontFamily: '"Playfair Display", serif' }}>Overview</h1>
-                        <p style={{ color: 'var(--text-secondary)' }}>Hospital Operations Summary</p>
+            {/* Editorial Header */}
+            <header className="dashboard-header">
+                <div>
+                    <div className="system-eyebrow">Hospital Operations System</div>
+                    <h1>Overview</h1>
+                    <div className="header-desc">
+                        Physician clinical coverage, live duty allocations, and physician absence authorizations
                     </div>
+                </div>
+                <div>
                     <button 
+                        className="btn-primary-action"
                         onClick={() => setIsModalOpen(true)}
-                        style={{
-                            display: 'flex', alignItems: 'center', gap: '0.5rem',
-                            background: 'var(--color-1)',
-                            color: 'var(--color-6)', padding: '0.75rem 1.25rem', borderRadius: '8px',
-                            border: 'none', cursor: 'pointer', fontWeight: '600',
-                            fontFamily: 'inherit', boxShadow: '0 4px 12px rgba(5,31,32,0.3)'
-                        }}
                     >
-                        <Plus size={18} /> Add Doctor
+                        <Plus size={16} />
+                        <span>Onboard Doctor</span>
                     </button>
                 </div>
-            </motion.header>
-            
-            <motion.div className="metrics-grid" variants={itemVariants}>
-                <div className="metric-card glass-panel">
-                    <h3 style={{ color: 'var(--text-secondary)' }}>Total Doctors</h3>
-                    <p className="value" style={{ color: 'var(--color-1)' }}>42</p>
-                </div>
-                <div className="metric-card glass-panel">
-                    <h3 style={{ color: 'var(--text-secondary)' }}>Active Duties</h3>
-                    <p className="value" style={{ color: 'var(--color-2)' }}>12</p>
-                </div>
-                <div className="metric-card alert glass-panel" style={{ border: '1px solid var(--color-4)' }}>
-                    <h3 style={{ color: 'var(--text-secondary)' }}>Coverage Gaps</h3>
-                    <p className="value" style={{ color: 'var(--color-4)' }}>3</p>
-                </div>
-            </motion.div>
+            </header>
 
-            <motion.div className="charts-grid" variants={itemVariants} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginTop: '2rem', minWidth: 0, width: '100%' }}>
-                <div className="chart-container glass-panel" style={{ padding: '1.5rem', minWidth: 0, overflow: 'hidden' }}>
-                    <h3 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>Department Coverage</h3>
+            {/* Typographic Metrics Strip (Editorial: not separate cards) */}
+            <section className="metrics-strip">
+                <div className="metric-strip-item">
+                    <span className="metric-label">Total Credentialed Doctors</span>
+                    <div className="metric-value">42</div>
+                    <span className="metric-subtext">Active physicians across 5 core departments</span>
+                </div>
+
+                <div className="metric-strip-item">
+                    <span className="metric-label">Active Operational Duties</span>
+                    <div className="metric-value">12</div>
+                    <span className="metric-subtext">Physicians currently scheduled on shift today</span>
+                </div>
+
+                <div className="metric-strip-item">
+                    <span className="metric-label">Identified Coverage Gaps</span>
+                    <div className="metric-value" style={{ color: 'var(--color-1)' }}>03</div>
+                    <span className="metric-subtext" style={{ color: '#b45309' }}>
+                        <AlertCircle size={14} /> 3 shifts flagged for backfill
+                    </span>
+                </div>
+            </section>
+
+            {/* Asymmetrical 2-Column Analytics */}
+            <section className="analytics-grid">
+                <div className="analytics-card">
+                    <div className="analytics-card-header">
+                        <h2>Department Clinical Coverage</h2>
+                    </div>
                     <CoverageChart />
                 </div>
-                
-                <div className="chart-container glass-panel" style={{ padding: '1.5rem', minWidth: 0, overflow: 'hidden' }}>
-                    <h3 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>Appointment Volume</h3>
+
+                <div className="analytics-card">
+                    <div className="analytics-card-header">
+                        <h2>Appointment Encounters</h2>
+                    </div>
                     <WaveChart />
                 </div>
-                
-                <div className="chart-container glass-panel" style={{ padding: '1.5rem', gridColumn: '1 / -1' }}>
-                    <h3 style={{ marginBottom: '0.25rem', color: 'var(--text-primary)', fontFamily: '"Playfair Display", serif' }}>Administrative Quick Actions</h3>
-                    <p style={{ marginBottom: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Fast access to common operational workflows</p>
-                    <QuickActions onOpenUpload={() => setIsUploadModalOpen(true)} />
-                </div>
-            </motion.div>
+            </section>
 
-            <motion.div className="glass-panel" variants={itemVariants} style={{ marginTop: '2rem', padding: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+            {/* Operational Actions */}
+            <section className="operational-section">
+                <div className="section-label-bar">Operational Workflows</div>
+                <QuickActions onOpenUpload={() => setIsUploadModalOpen(true)} />
+            </section>
+
+            {/* Open Editorial Table: Doctor Leave Applications */}
+            <section className="editorial-table-container">
+                <div className="editorial-table-header">
                     <div>
-                        <h3 style={{ margin: 0, fontFamily: '"Playfair Display", serif', color: 'var(--color-1)', fontSize: '1.35rem' }}>
-                            Doctor Leave Applications
-                        </h3>
-                        <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                        <h2>Doctor Leave Applications</h2>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                             Review, authorize, decline, or edit physician absence requests
-                        </p>
+                        </span>
                     </div>
 
-                    {/* Filter tabs */}
-                    <div style={{ display: 'flex', gap: '0.4rem', background: 'rgba(35, 83, 71, 0.1)', padding: '0.25rem', borderRadius: '8px' }}>
-                        {[
-                            { key: 'ALL', label: `All (${leaves.length})` },
-                            { key: 'PENDING', label: `Pending (${leaves.filter(l => (l.status || '').toUpperCase() === 'PENDING').length})` },
-                            { key: 'APPROVED', label: `Approved (${leaves.filter(l => (l.status || '').toUpperCase() === 'APPROVED').length})` },
-                            { key: 'REJECTED', label: `Declined (${leaves.filter(l => (l.status || '').toUpperCase() === 'REJECTED').length})` }
-                        ].map(f => (
-                            <button
-                                key={f.key}
-                                onClick={() => setLeaveFilter(f.key)}
-                                style={{
-                                    padding: '0.35rem 0.75rem',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    background: leaveFilter === f.key ? 'var(--color-4)' : 'transparent',
-                                    color: leaveFilter === f.key ? 'var(--color-beige)' : 'var(--color-3)',
-                                    fontWeight: leaveFilter === f.key ? 600 : 500,
-                                    fontSize: '0.8rem',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease'
-                                }}
-                            >
-                                {f.label}
-                            </button>
-                        ))}
+                    {/* Filter Segmented Control */}
+                    <div className="filter-segmented-control">
+                        <button 
+                            className={`filter-btn ${leaveFilter === 'ALL' ? 'active' : ''}`}
+                            onClick={() => setLeaveFilter('ALL')}
+                        >
+                            All ({leaves.length})
+                        </button>
+                        <button 
+                            className={`filter-btn ${leaveFilter === 'PENDING' ? 'active' : ''}`}
+                            onClick={() => setLeaveFilter('PENDING')}
+                        >
+                            Pending ({pendingCount})
+                        </button>
+                        <button 
+                            className={`filter-btn ${leaveFilter === 'APPROVED' ? 'active' : ''}`}
+                            onClick={() => setLeaveFilter('APPROVED')}
+                        >
+                            Approved ({approvedCount})
+                        </button>
+                        <button 
+                            className={`filter-btn ${leaveFilter === 'REJECTED' ? 'active' : ''}`}
+                            onClick={() => setLeaveFilter('REJECTED')}
+                        >
+                            Declined ({rejectedCount})
+                        </button>
                     </div>
                 </div>
 
-                {(() => {
-                    const displayedLeaves = leaves.filter(l => {
-                        const s = (l.status || '').toUpperCase();
-                        if (leaveFilter === 'ALL') return true;
-                        return s === leaveFilter;
-                    });
+                {/* Table Header */}
+                <div className="editorial-row editorial-row-header">
+                    <div>Physician</div>
+                    <div>Schedule Period</div>
+                    <div>Clinical Specialty & Reason</div>
+                    <div>Status</div>
+                    <div style={{ textAlign: 'right' }}>Actions</div>
+                </div>
 
-                    if (displayedLeaves.length === 0) {
+                {displayedLeaves.length === 0 ? (
+                    <div style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                        No leave applications match the "{leaveFilter.toLowerCase()}" filter.
+                    </div>
+                ) : (
+                    displayedLeaves.map(leave => {
+                        const currentStatus = (leave.status || 'PENDING').toUpperCase();
+                        const isApproved = currentStatus === 'APPROVED';
+                        const isRejected = currentStatus === 'REJECTED';
+                        const isPending = currentStatus === 'PENDING';
+
                         return (
-                            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.3)', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
-                                <p style={{ margin: 0, fontSize: '0.9rem' }}>No leave applications match the "{leaveFilter.toLowerCase()}" filter.</p>
+                            <div key={leave.id} className="editorial-row">
+                                <div>
+                                    <div style={{ fontWeight: 600, color: 'var(--color-1)', fontSize: '0.9rem' }}>
+                                        {leave.doctorName || `Physician ID #${leave.doctorId}`}
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>
+                                        {leave.doctorSpecialty || 'General Medicine'}
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-secondary)' }}>
+                                    <Calendar size={14} color="var(--text-muted)" />
+                                    <span>{leave.startDate} – {leave.endDate}</span>
+                                </div>
+
+                                <div>
+                                    <div style={{ color: 'var(--text-secondary)', fontStyle: leave.reason ? 'italic' : 'normal' }}>
+                                        {leave.reason ? `"${leave.reason}"` : 'Standard physician absence'}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span className={`status-indicator-dot ${currentStatus.toLowerCase()}`}>
+                                        <span style={{ 
+                                            width: 6, 
+                                            height: 6, 
+                                            borderRadius: '50%', 
+                                            backgroundColor: isApproved ? 'var(--color-4)' : isRejected ? '#b91c1c' : '#b45309' 
+                                        }} />
+                                        {currentStatus}
+                                    </span>
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.4rem' }}>
+                                    {!isApproved && (
+                                        <button 
+                                            className="row-action-btn accept"
+                                            onClick={() => handleLeaveAction(leave.id, 'APPROVED')}
+                                            title="Accept and trigger emergency coverage"
+                                        >
+                                            <Check size={13} />
+                                            <span>Accept</span>
+                                        </button>
+                                    )}
+
+                                    {!isRejected && (
+                                        <button 
+                                            className="row-action-btn decline"
+                                            onClick={() => handleLeaveAction(leave.id, 'REJECTED')}
+                                            title="Decline leave application"
+                                        >
+                                            <X size={13} />
+                                            <span>Decline</span>
+                                        </button>
+                                    )}
+
+                                    <button 
+                                        className="row-action-btn edit"
+                                        onClick={() => setEditingLeave(leave)}
+                                        title="Modify leave details"
+                                    >
+                                        <Edit3 size={13} />
+                                        <span>Edit</span>
+                                    </button>
+                                </div>
                             </div>
                         );
-                    }
+                    })
+                )}
+            </section>
 
-                    return (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                            {displayedLeaves.map(leave => {
-                                const currentStatus = (leave.status || 'PENDING').toUpperCase();
-                                return (
-                                    <div 
-                                        key={leave.id} 
-                                        style={{ 
-                                            display: 'flex', 
-                                            justifyContent: 'space-between', 
-                                            alignItems: 'center', 
-                                            padding: '1.1rem 1.25rem', 
-                                            background: 'rgba(255,255,255,0.45)', 
-                                            borderRadius: '10px', 
-                                            border: '1px solid var(--glass-border)',
-                                            flexWrap: 'wrap',
-                                            gap: '1rem'
-                                        }}
-                                    >
-                                        <div style={{ flex: 1, minWidth: '240px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.25rem' }}>
-                                                <span style={{ fontWeight: 600, color: 'var(--color-1)', fontSize: '1rem' }}>
-                                                    {leave.doctorName || `Dr. (ID #${leave.doctorId})`}
-                                                </span>
-                                                {leave.doctorSpecialty && (
-                                                    <span style={{ color: 'var(--color-4)', fontSize: '0.8rem', background: 'var(--color-6)', padding: '0.15rem 0.5rem', borderRadius: '4px', fontWeight: 600, border: '1px solid rgba(35,83,71,0.2)' }}>
-                                                        {leave.doctorSpecialty}
-                                                    </span>
-                                                )}
-                                                <span className={`status-tag ${currentStatus === 'APPROVED' ? 'active' : currentStatus === 'REJECTED' ? 'inactive' : 'pending'}`}>
-                                                    {currentStatus}
-                                                </span>
-                                            </div>
-                                            
-                                            <div style={{ fontSize: '0.85rem', color: 'var(--color-3)', display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.35rem' }}>
-                                                <Calendar size={14} color="var(--color-4)" />
-                                                <span>{leave.startDate} to {leave.endDate}</span>
-                                            </div>
-
-                                            {leave.reason && (
-                                                <div style={{ fontSize: '0.85rem', color: 'var(--color-2)', marginTop: '0.35rem', fontStyle: 'italic' }}>
-                                                    "{leave.reason}"
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            {/* Accept / Approve */}
-                                            {currentStatus !== 'APPROVED' && (
-                                                <button 
-                                                    onClick={() => handleLeaveAction(leave.id, 'APPROVED')} 
-                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.5rem 0.85rem', background: 'var(--color-4)', color: 'var(--color-beige)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(5,31,32,0.15)' }}
-                                                    title="Accept & Review Emergency Coverage"
-                                                >
-                                                    <Check size={15} /> Accept
-                                                </button>
-                                            )}
-
-                                            {/* Decline / Reject */}
-                                            {currentStatus !== 'REJECTED' && (
-                                                <button 
-                                                    onClick={() => handleLeaveAction(leave.id, 'REJECTED')} 
-                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.5rem 0.85rem', background: 'rgba(185, 28, 28, 0.1)', color: '#b91c1c', border: '1px solid rgba(185, 28, 28, 0.25)', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
-                                                    title="Decline Leave"
-                                                >
-                                                    <X size={15} /> Decline
-                                                </button>
-                                            )}
-
-                                            {/* Edit Leave */}
-                                            <button 
-                                                onClick={() => setEditingLeave(leave)} 
-                                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.5rem 0.85rem', background: 'rgba(255, 255, 255, 0.7)', color: 'var(--color-1)', border: '1px solid var(--glass-border)', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 500 }}
-                                                title="Edit Leave Details"
-                                            >
-                                                <Edit3 size={15} color="var(--color-3)" /> Edit
-                                            </button>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    );
-                })()}
-            </motion.div>
-
+            {/* Modals */}
             <AddDoctorModal 
                 isOpen={isModalOpen} 
                 onClose={() => setIsModalOpen(false)} 

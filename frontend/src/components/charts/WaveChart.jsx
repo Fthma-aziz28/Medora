@@ -14,40 +14,75 @@ const data = [
 
 export default function WaveChart() {
     return (
-        <div style={{ width: '100%', height: 300, minWidth: 0, position: 'relative' }}>
-            <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <defs>
-                        <linearGradient id="colorWave" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#051F20" stopOpacity={0.8}/>
-                            <stop offset="95%" stopColor="#8EB69B" stopOpacity={0.1}/>
-                        </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(5,31,32,0.08)" />
-                    <XAxis dataKey="month" stroke="var(--text-secondary)" tick={{ fontSize: 12 }} />
-                    <YAxis stroke="var(--text-secondary)" tick={{ fontSize: 12 }} />
-                    <Tooltip 
-                        contentStyle={{ 
-                            borderRadius: '12px', 
-                            background: '#051F20', 
-                            border: '1px solid rgba(255,255,255,0.1)', 
-                            boxShadow: '0 8px 20px rgba(5,31,32,0.3)',
-                            color: '#DAF1DE',
-                            fontWeight: '600'
-                        }} 
-                        itemStyle={{ color: '#8EB69B' }}
-                    />
-                    <Area 
-                        type="monotone" 
-                        dataKey="appointments" 
-                        stroke="#051F20" 
-                        strokeWidth={3} 
-                        fillOpacity={1} 
-                        fill="url(#colorWave)" 
-                    />
-                </AreaChart>
-            </ResponsiveContainer>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', width: '100%' }}>
+            {/* Analytical Metric Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.75rem' }}>
+                <div>
+                    <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', fontWeight: 600 }}>
+                        Monthly Encounters
+                    </span>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--color-1)', fontFamily: 'var(--font-heading)', marginTop: '0.15rem' }}>
+                        200 <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--color-4)', fontFamily: 'var(--font-ui)' }}>+14.2% vs baseline</span>
+                    </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                    <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', fontWeight: 600 }}>
+                        Period
+                    </span>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--color-1)', marginTop: '0.15rem' }}>
+                        Jan – Aug 2026
+                    </div>
+                </div>
+            </div>
+
+            {/* Line / Area Chart */}
+            <div style={{ width: '100%', height: 210, minWidth: 0, position: 'relative' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <defs>
+                            <linearGradient id="editorialWave" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#051F20" stopOpacity={0.12}/>
+                                <stop offset="95%" stopColor="#051F20" stopOpacity={0.0}/>
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="2 2" stroke="rgba(5, 31, 32, 0.05)" vertical={false} />
+                        <XAxis 
+                            dataKey="month" 
+                            stroke="transparent" 
+                            tick={{ fontSize: 11, fill: 'var(--text-muted)' }} 
+                            axisLine={false}
+                            tickLine={false}
+                        />
+                        <YAxis 
+                            stroke="transparent" 
+                            tick={{ fontSize: 11, fill: 'var(--text-muted)' }} 
+                            axisLine={false}
+                            tickLine={false}
+                        />
+                        <Tooltip 
+                            contentStyle={{ 
+                                borderRadius: '4px', 
+                                background: '#051F20', 
+                                border: '1px solid rgba(255,255,255,0.12)', 
+                                boxShadow: '0 4px 12px rgba(5,31,32,0.2)',
+                                color: '#F5F5ED',
+                                fontSize: '0.8rem',
+                                padding: '0.4rem 0.75rem'
+                            }} 
+                            itemStyle={{ color: '#8EB69B' }}
+                            formatter={(val) => [`${val} consultations`, 'Volume']}
+                        />
+                        <Area 
+                            type="monotone" 
+                            dataKey="appointments" 
+                            stroke="#051F20" 
+                            strokeWidth={2} 
+                            fillOpacity={1} 
+                            fill="url(#editorialWave)" 
+                        />
+                    </AreaChart>
+                </ResponsiveContainer>
+            </div>
         </div>
     );
 }
-
