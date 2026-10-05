@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Pencil, Trash2, Plus } from 'lucide-react';
+import { Pencil, Trash2, Plus, Calendar, CheckCircle } from 'lucide-react';
 import EditAppointmentModal from '../components/EditAppointmentModal';
 import AddAppointmentModal from '../components/AddAppointmentModal';
 import { useAuth } from '../context/AuthContext';
@@ -12,9 +12,13 @@ export default function Appointments() {
     const [editingAppt, setEditingAppt] = useState(null);
     const [isAddOpen, setIsAddOpen] = useState(false);
     const { user } = useAuth();
+    const isPatient = user?.role === 'PATIENT';
 
     const maskName = (name) => {
         if (!name) return '';
+        if (isPatient && (name.toLowerCase().includes('emily') || (user?.name && name.toLowerCase().includes(user.name.toLowerCase())))) {
+            return name;
+        }
         const parts = name.split(' ');
         return parts.map(p => p.charAt(0) + '*'.repeat(Math.max(1, p.length - 1))).join(' ');
     };
@@ -36,7 +40,11 @@ export default function Appointments() {
     }, []);
 
     const handleDelete = async (id) => {
-        if (window.confirm("Are you sure you want to cancel and remove this appointment?")) {
+        const confirmMsg = isPatient 
+            ? "Are you sure you want to cancel your scheduled appointment?" 
+            : "Are you sure you want to cancel and remove this appointment?";
+
+        if (window.confirm(confirmMsg)) {
             try {
                 if (API_BASE_URL) {
                     await fetch(`${API_BASE_URL}/api/appointments/${id}`, { method: 'DELETE' });
@@ -49,22 +57,29 @@ export default function Appointments() {
         }
     };
 
+    const handleAppointmentAdded = (newAppt) => {
+        if (newAppt) {
+            setAppointments(prev => [newAppt, ...prev]);
+        }
+        fetchAppointments();
+    };
+
     return (
         <div className="roster-container">
             <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
                     <h1>Appointments</h1>
-                    <p>Patient scheduling (HIPAA masked)</p>
+                    <p>{isPatient ? 'Your scheduled clinical consultations and physician visits' : 'Patient scheduling (HIPAA masked)'}</p>
                 </div>
-                {(user?.role === 'ADMIN' || user?.role === 'DOCTOR') && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                     <button 
                         className="primary-btn" 
                         onClick={() => setIsAddOpen(true)}
                         style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                     >
-                        <Plus size={18} /> Add Appointment
+                        <Plus size={18} /> {isPatient ? 'Book Appointment' : 'Add Appointment'}
                     </button>
-                )}
+                </div>
             </header>
 
             <div className="table-wrapper">
@@ -72,29 +87,37 @@ export default function Appointments() {
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Doctor</th>
+                            <th>Attending Doctor</th>
                             <th>Patient</th>
                             <th>Date</th>
-                            <th>Time</th>
+                            <th>Consultation Time</th>
                             <th>Status</th>
-                            {(user?.role === 'ADMIN' || user?.role === 'DOCTOR') && <th>Actions</th>}
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {appointments.map(a => (
                             <tr key={a.id}>
-                                <td data-label="ID">{a.id}</td>
-                                <td data-label="Doctor">{a.doctorName || `Dr. #${a.doctorId}`}</td>
+                                <td data-label="ID">#{a.id}</td>
+                                <td data-label="Doctor">
+                                    <strong>{a.doctorName || `Dr. #${a.doctorId}`}</strong>
+                                </td>
                                 <td data-label="Patient">{maskName(a.patientName)}</td>
                                 <td data-label="Date">{a.appointmentDate}</td>
-                                <td data-label="Time">{a.startTime} - {a.endTime}</td>
-                                <td data-label="Status"><span className={`status-badge ${a.status?.toLowerCase() || ''}`}>{a.status}</span></td>
-                                {(user?.role === 'ADMIN' || user?.role === 'DOCTOR') && (
-                                    <td data-label="Actions" style={{ display: 'flex', gap: '0.5rem' }}>
-                                        <button onClick={() => setEditingAppt(a)} style={{ background: 'transparent', border: 'none', color: 'var(--color-5)', cursor: 'pointer' }}><Pencil size={18}/></button>
-                                        <button onClick={() => handleDelete(a.id)} style={{ background: 'transparent', border: 'none', color: '#ff4d4f', cursor: 'pointer' }}><Trash2 size={18}/></button>
-                                    </td>
-                                )}
+                                <td data-label="Time">{a.startTime?.substring(0, 5)} - {a.endTime?.substring(0, 5)}</td>
+                                <td data-label="Status">
+                                    <span className={`status-badge ${a.status?.toLowerCase() || ''}`}>{a.status}</span>
+                                </td>
+                                <td data-label="Actions" style={{ display: 'flex', gap: '0.5rem' }}>
+                                    {!isPatient && (
+                                        <button onClick={() => setEditingAppt(a)} style={{ background: 'transparent', border: 'none', color: 'var(--color-5)', cursor: 'pointer' }} title="Edit appointment">
+                                            <Pencil size={18}/>
+                                        </button>
+                                    )}
+                                    <button onClick={() => handleDelete(a.id)} style={{ background: 'transparent', border: 'none', color: '#ff4d4f', cursor: 'pointer' }} title={isPatient ? "Cancel appointment" : "Delete appointment"}>
+                                        <Trash2 size={18}/>
+                                    </button>
+                                </td>
                             </tr>
                         ))}
                     </tbody>
@@ -111,7 +134,7 @@ export default function Appointments() {
             <AddAppointmentModal
                 isOpen={isAddOpen}
                 onClose={() => setIsAddOpen(false)}
-                onUpdated={fetchAppointments}
+                onUpdated={handleAppointmentAdded}
             />
         </div>
     );

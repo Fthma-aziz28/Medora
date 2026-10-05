@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Calendar, Download, Clock } from 'lucide-react';
+import { FileText, Calendar, Download, Clock, Plus } from 'lucide-react';
+import AddAppointmentModal from '../components/AddAppointmentModal';
 import { API_BASE_URL } from '../apiConfig';
 import './Dashboard.css';
 
@@ -37,6 +38,12 @@ export default function PatientDashboard() {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [documents, setDocuments] = useState(DEMO_PATIENT_DOCUMENTS);
+    const [isBookingOpen, setIsBookingOpen] = useState(false);
+    const [nextVisit, setNextVisit] = useState({
+        time: 'Today 09:00',
+        detail: 'Dr. Aisha Rahman · Cardiology Room 302'
+    });
+
     const patientName = user?.name || 'Emily Chen';
     const patientEmail = user?.email || 'emily@medora.com';
 
@@ -63,6 +70,15 @@ export default function PatientDashboard() {
 
     const prescriptionCount = documents.filter(d => d.documentType === 'PRESCRIPTION').length || 1;
 
+    const handleAppointmentBooked = (newAppt) => {
+        if (newAppt) {
+            setNextVisit({
+                time: `${newAppt.appointmentDate} ${newAppt.startTime?.substring(0, 5)}`,
+                detail: `${newAppt.doctorName || 'Attending Physician'} · Outpatient Consultation`
+            });
+        }
+    };
+
     return (
         <motion.div 
             className="dashboard-container"
@@ -79,12 +95,19 @@ export default function PatientDashboard() {
                         Welcome, {patientName} ({patientEmail}) · Personal clinical summary, active prescriptions, and diagnostic documents
                     </div>
                 </div>
-                <div>
+                <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
                     <button 
-                        className="btn-primary-action"
+                        className="btn-secondary-action"
                         onClick={() => navigate('/app/appointments')}
                     >
                         <Calendar size={15} />
+                        <span>All Appointments</span>
+                    </button>
+                    <button 
+                        className="btn-primary-action"
+                        onClick={() => setIsBookingOpen(true)}
+                    >
+                        <Plus size={15} />
                         <span>Book Appointment</span>
                     </button>
                 </div>
@@ -94,8 +117,8 @@ export default function PatientDashboard() {
             <section className="metrics-strip">
                 <div className="metric-strip-item">
                     <span className="metric-label">Next Scheduled Visit</span>
-                    <div className="metric-value" style={{ fontSize: '2.1rem' }}>Today 09:00</div>
-                    <span className="metric-subtext">Dr. Aisha Rahman · Cardiology Room 302</span>
+                    <div className="metric-value" style={{ fontSize: '2.1rem' }}>{nextVisit.time}</div>
+                    <span className="metric-subtext">{nextVisit.detail}</span>
                 </div>
 
                 <div className="metric-strip-item">
@@ -165,6 +188,12 @@ export default function PatientDashboard() {
                     </div>
                 ))}
             </section>
+
+            <AddAppointmentModal 
+                isOpen={isBookingOpen}
+                onClose={() => setIsBookingOpen(false)}
+                onUpdated={handleAppointmentBooked}
+            />
         </motion.div>
     );
 }
