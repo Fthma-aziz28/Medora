@@ -4,10 +4,12 @@ import EditDoctorModal from '../components/EditDoctorModal';
 import AddDoctorModal from '../components/AddDoctorModal';
 import { API_BASE_URL } from '../apiConfig';
 import { DEMO_DOCTORS } from '../demoData';
+import DateRangePicker from '@/components/ui/date-range-picker';
 import './Roster.css';
 
 export default function Roster() {
     const [doctors, setDoctors] = useState(DEMO_DOCTORS);
+    const [dateRange, setDateRange] = useState(null);
     const [editingDoctor, setEditingDoctor] = useState(null);
     const [isAddOpen, setIsAddOpen] = useState(false);
 
@@ -43,18 +45,24 @@ export default function Roster() {
 
     return (
         <div className="roster-container">
-            <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
                     <h1>Duty Roster</h1>
-                    <p>Manage physician schedules</p>
+                    <p>Manage physician schedules and active shift rotations</p>
                 </div>
-                <button 
-                    className="primary-btn" 
-                    onClick={() => setIsAddOpen(true)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                >
-                    <Plus size={18} /> Add Doctor
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                    <DateRangePicker 
+                        onChange={setDateRange}
+                        placeholder="Roster Period"
+                    />
+                    <button 
+                        className="primary-btn" 
+                        onClick={() => setIsAddOpen(true)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                        <Plus size={18} /> Add Doctor
+                    </button>
+                </div>
             </header>
 
             <div className="table-wrapper glass-panel">

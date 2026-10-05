@@ -31,6 +31,18 @@ export default function FairnessHistory() {
         }
     };
 
+    const formatDoctor = (name, id) => {
+        if (!name) return `Dr. #${id}`;
+        const trimmed = name.trim();
+        return trimmed.toLowerCase().startsWith('dr.') ? trimmed : `Dr. ${trimmed}`;
+    };
+
+    const formatSlotTime = (record) => {
+        if (record.startTime && record.endTime) return `${record.startTime} - ${record.endTime}`;
+        if (record.slotTime) return record.slotTime;
+        return '09:00 - 17:00';
+    };
+
     if (loading) return <div style={{padding: '2rem'}}>Loading history...</div>;
 
     return (
@@ -45,48 +57,57 @@ export default function FairnessHistory() {
             </header>
 
             <div className="table-wrapper glass-panel" style={{ marginTop: '2rem', overflowX: 'auto', width: '100%' }}>
-                <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <table style={{ width: '100%', minWidth: '680px', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead>
-                        <tr style={{ borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
-                            <th style={{ padding: '1rem' }}>Date & Slot</th>
-                            <th style={{ padding: '1rem' }}>Original Doctor</th>
-                            <th style={{ padding: '1rem' }}>Replacement Doctor</th>
-                            <th style={{ padding: '1rem' }}>Fairness Score</th>
-                            <th style={{ padding: '1rem' }}>Reason</th>
-                            <th style={{ padding: '1rem' }}>Override?</th>
+                        <tr style={{ borderBottom: '1px solid var(--glass-border)', background: 'rgba(35, 83, 71, 0.05)' }}>
+                            <th style={{ padding: '1rem', color: 'var(--color-1)', fontWeight: 600 }}>Date & Shift Slot</th>
+                            <th style={{ padding: '1rem', color: 'var(--color-1)', fontWeight: 600 }}>Original Physician</th>
+                            <th style={{ padding: '1rem', color: 'var(--color-1)', fontWeight: 600 }}>Assigned Replacement</th>
+                            <th style={{ padding: '1rem', color: 'var(--color-1)', fontWeight: 600 }}>Fairness Equity</th>
+                            <th style={{ padding: '1rem', color: 'var(--color-1)', fontWeight: 600 }}>Allocation Rational</th>
+                            <th style={{ padding: '1rem', color: 'var(--color-1)', fontWeight: 600 }}>Override Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         {history.map(record => (
-                            <tr key={record.id} style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+                            <tr key={record.id} style={{ borderBottom: '1px solid rgba(35, 83, 71, 0.08)' }}>
                                 <td style={{ padding: '1rem', fontWeight: '500' }}>
-                                    {record.slotDate} <br/>
-                                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{record.startTime} - {record.endTime}</span>
+                                    <div style={{ color: 'var(--color-1)', fontWeight: 600 }}>{record.slotDate}</div>
+                                    <span style={{ color: 'var(--color-3)', fontSize: '0.82rem', fontWeight: 500 }}>
+                                        {formatSlotTime(record)}
+                                    </span>
                                 </td>
-                                <td style={{ padding: '1rem', color: '#e74c3c' }}>
-                                    Dr. {record.originalDoctorName || record.originalDoctorId}
+                                <td style={{ padding: '1rem', color: '#c0392b', fontWeight: 600 }}>
+                                    {formatDoctor(record.originalDoctorName, record.originalDoctorId)}
                                 </td>
-                                <td style={{ padding: '1rem', color: '#27ae60', fontWeight: 'bold' }}>
-                                    Dr. {record.replacementDoctorName || record.replacementDoctorId}
+                                <td style={{ padding: '1rem', color: 'var(--color-4)', fontWeight: 700 }}>
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                                        <Check size={15} color="var(--color-4)" />
+                                        {formatDoctor(record.replacementDoctorName, record.replacementDoctorId)}
+                                    </span>
                                 </td>
                                 <td style={{ padding: '1rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                         <div style={{ 
-                                            width: '40px', height: '4px', background: 'rgba(0,0,0,0.1)', borderRadius: '2px', overflow: 'hidden' 
+                                            width: '50px', height: '6px', background: 'rgba(5, 31, 32, 0.1)', borderRadius: '3px', overflow: 'hidden' 
                                         }}>
-                                            <div style={{ width: `${record.fairnessScore}%`, height: '100%', background: 'var(--primary-color)' }}></div>
+                                            <div style={{ width: `${record.fairnessScore}%`, height: '100%', background: 'var(--color-4, #235347)' }}></div>
                                         </div>
-                                        <span style={{ fontWeight: 'bold' }}>{record.fairnessScore}</span>
+                                        <span style={{ fontWeight: 700, color: 'var(--color-1)', fontSize: '0.9rem' }}>{record.fairnessScore}%</span>
                                     </div>
                                 </td>
-                                <td style={{ padding: '1rem', fontSize: '0.9rem', maxWidth: '200px' }}>{record.reason}</td>
+                                <td style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--color-2)', maxWidth: '240px', lineHeight: 1.4 }}>
+                                    {record.reason}
+                                </td>
                                 <td style={{ padding: '1rem' }}>
                                     {record.overrideFlag ? (
-                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', color: '#d35400', background: 'rgba(211, 84, 0, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                                            <ShieldAlert size={14} /> YES
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', color: '#b91c1c', background: 'rgba(185, 28, 28, 0.1)', padding: '0.25rem 0.6rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                                            <ShieldAlert size={14} /> MANUAL
                                         </span>
                                     ) : (
-                                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>No</span>
+                                        <span style={{ color: 'var(--color-4)', background: 'rgba(35, 83, 71, 0.1)', padding: '0.25rem 0.6rem', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600 }}>
+                                            Automated
+                                        </span>
                                     )}
                                 </td>
                             </tr>
