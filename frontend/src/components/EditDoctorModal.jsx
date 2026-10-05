@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, Save } from 'lucide-react';
 import { API_BASE_URL } from '../apiConfig';
-import '../pages/Dashboard.css';
+import './AddDoctorModal.css';
 
 export default function EditDoctorModal({ isOpen, onClose, doctor, onDoctorUpdated }) {
     const [formData, setFormData] = useState({
@@ -51,23 +52,111 @@ export default function EditDoctorModal({ isOpen, onClose, doctor, onDoctorUpdat
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content glass-panel" onClick={e => e.stopPropagation()} style={{ position: 'relative' }}>
-                <button onClick={onClose} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer' }}><X size={24} /></button>
-                <h2>Edit Doctor</h2>
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
-                    <input type="text" placeholder="Department ID" value={formData.departmentId} onChange={e => setFormData({...formData, departmentId: e.target.value})} />
-                    <input type="text" placeholder="Specialty" value={formData.specialty} onChange={e => setFormData({...formData, specialty: e.target.value})} />
-                    <input type="text" placeholder="Working Days (e.g. 1,2,3)" value={formData.workingDays} onChange={e => setFormData({...formData, workingDays: e.target.value})} />
-                    <input type="time" placeholder="Start Time" value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} />
-                    <input type="time" placeholder="End Time" value={formData.endTime} onChange={e => setFormData({...formData, endTime: e.target.value})} />
-                    <input type="number" placeholder="Slot Mins" value={formData.slotMins} onChange={e => setFormData({...formData, slotMins: e.target.value})} />
-                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                        <button type="submit" className="primary-btn" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Save size={18} /> Save Changes</button>
-                        <button type="button" className="secondary-btn" onClick={onClose}>Cancel</button>
+        <AnimatePresence>
+            <div className="doctor-modal-overlay" onClick={onClose}>
+                <motion.div 
+                    className="doctor-modal-card" 
+                    onClick={e => e.stopPropagation()}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 12 }}
+                    transition={{ duration: 0.15 }}
+                >
+                    {/* Header */}
+                    <div className="doctor-modal-header">
+                        <div>
+                            <h2>Edit Physician Credentials</h2>
+                            <p>Update clinical specialty, shift rotation, and department assignment</p>
+                        </div>
+                        <button className="doctor-modal-close" onClick={onClose} aria-label="Close">
+                            <X size={18} />
+                        </button>
                     </div>
-                </form>
+
+                    {/* Form */}
+                    <form onSubmit={handleSubmit}>
+                        <div className="doctor-modal-body">
+                            <div className="modal-section">
+                                <div className="modal-section-title">Clinical Profile</div>
+                                
+                                <div className="modal-grid-2">
+                                    <div className="modal-input-group">
+                                        <label>Department ID</label>
+                                        <input 
+                                            type="number" 
+                                            value={formData.departmentId} 
+                                            onChange={e => setFormData({...formData, departmentId: e.target.value})} 
+                                            required 
+                                        />
+                                    </div>
+                                    <div className="modal-input-group">
+                                        <label>Clinical Specialty</label>
+                                        <input 
+                                            type="text" 
+                                            value={formData.specialty} 
+                                            onChange={e => setFormData({...formData, specialty: e.target.value})} 
+                                            required 
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="modal-input-group">
+                                    <label>Active Working Days</label>
+                                    <input 
+                                        type="text" 
+                                        value={formData.workingDays} 
+                                        onChange={e => setFormData({...formData, workingDays: e.target.value})} 
+                                        placeholder="Mon-Fri or 1,2,3" 
+                                        required 
+                                    />
+                                </div>
+
+                                <div className="modal-grid-2">
+                                    <div className="modal-input-group">
+                                        <label>Shift Start Time</label>
+                                        <input 
+                                            type="time" 
+                                            value={formData.startTime} 
+                                            onChange={e => setFormData({...formData, startTime: e.target.value})} 
+                                            required 
+                                        />
+                                    </div>
+                                    <div className="modal-input-group">
+                                        <label>Shift End Time</label>
+                                        <input 
+                                            type="time" 
+                                            value={formData.endTime} 
+                                            onChange={e => setFormData({...formData, endTime: e.target.value})} 
+                                            required 
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="modal-input-group">
+                                    <label>Consultation Slot Duration (Mins)</label>
+                                    <input 
+                                        type="number" 
+                                        value={formData.slotMins} 
+                                        onChange={e => setFormData({...formData, slotMins: parseInt(e.target.value) || 20})} 
+                                        required 
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="doctor-modal-footer">
+                            <button type="button" className="btn-secondary" onClick={onClose}>
+                                Cancel
+                            </button>
+                            <button type="submit" className="btn-submit-doctor">
+                                <Save size={16} />
+                                <span>Save Changes</span>
+                            </button>
+                        </div>
+                    </form>
+                </motion.div>
             </div>
-        </div>
+        </AnimatePresence>
     );
 }

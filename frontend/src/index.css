@@ -111,3 +111,79 @@ img, svg, canvas {
         scroll-behavior: auto !important;
     }
 }
+
+/* Global Clinical Modal Architecture */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(5, 31, 32, 0.45);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.modal-content {
+    background: #FFFFFF;
+    border: 1px solid var(--border-medium);
+    border-radius: 4px;
+    width: 100%;
+    max-width: 540px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 12px 32px rgba(5, 31, 32, 0.15);
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.primary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    background-color: var(--color-1);
+    color: #FAF9F5;
+    padding: 0.65rem 1.25rem;
+    border-radius: 4px;
+    border: 1px solid var(--color-1);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.primary-btn:hover {
+    background-color: var(--color-2);
+    border-color: var(--color-2);
+}
+
+.secondary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    background-color: transparent;
+    color: var(--text-secondary);
+    padding: 0.65rem 1.25rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-subtle);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+}
+
+.secondary-btn:hover {
+    background-color: var(--color-surface-subtle);
+    border-color: var(--border-strong);
+    color: var(--color-1);
+}
+
