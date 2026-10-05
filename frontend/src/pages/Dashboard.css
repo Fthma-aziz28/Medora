@@ -63,6 +63,27 @@
     border-color: var(--color-2);
 }
 
+.btn-secondary-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background-color: #FFFFFF;
+    color: var(--color-1);
+    padding: 0.65rem 1.15rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-subtle);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-secondary-action:hover {
+    background-color: var(--color-surface-subtle);
+    border-color: var(--border-strong);
+}
+
 /* Typographic Metrics Strip */
 .metrics-strip {
     display: grid;
@@ -77,6 +98,19 @@
     display: flex;
     flex-direction: column;
     justifyContent: space-between;
+    text-align: left;
+    background: transparent;
+    border: none;
+    font-family: inherit;
+}
+
+.metric-strip-item.clickable-strip-item {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.metric-strip-item.clickable-strip-item:hover {
+    background-color: var(--color-surface-subtle);
 }
 
 .metric-strip-item:not(:last-child) {
@@ -131,6 +165,8 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 0.75rem;
 }
 
 .analytics-card-header h2 {
@@ -138,6 +174,106 @@
     font-weight: 600;
     font-family: var(--font-heading);
     color: var(--color-1);
+}
+
+/* Schedule & Patient Queue lists */
+.doctor-schedule-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.doctor-schedule-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 1rem;
+    background: var(--color-surface-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.doctor-schedule-item.today {
+    background: #FFFFFF;
+    border-color: var(--border-strong);
+    border-left: 3px solid var(--color-1);
+}
+
+.schedule-day-time {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.schedule-day-time strong {
+    color: var(--color-1);
+    font-weight: 600;
+}
+
+.schedule-day-time span {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+
+.schedule-ward-info {
+    color: var(--color-1);
+    font-weight: 500;
+}
+
+.shift-badge {
+    padding: 0.2rem 0.55rem;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.shift-badge.active {
+    background-color: var(--color-6);
+    color: var(--color-4);
+}
+
+.shift-badge.scheduled {
+    background-color: rgba(5, 31, 32, 0.06);
+    color: var(--color-1);
+}
+
+.shift-badge.standby {
+    background-color: #fef3c7;
+    color: #b45309;
+}
+
+/* Patient Queue List */
+.patient-queue-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.patient-queue-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 0.85rem;
+}
+
+.patient-queue-item:last-child {
+    border-bottom: none;
+}
+
+.patient-info strong {
+    display: block;
+    color: var(--color-1);
+    font-weight: 600;
+}
+
+.patient-info span {
+    font-size: 0.75rem;
+    color: var(--text-muted);
 }
 
 /* Operational Actions Section */

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { FileText, Calendar, PlusCircle, ArrowUpRight, Download } from 'lucide-react';
 import { API_BASE_URL } from '../apiConfig';
 import './Dashboard.css';
 
@@ -18,7 +19,7 @@ const DEMO_PATIENT_DOCUMENTS = [
         id: 2,
         title: 'Prescription: Lisinopril 10mg',
         documentType: 'PRESCRIPTION',
-        description: 'Take 1 tablet daily every morning with water. 90-day refill authorized by Dr. Jane Doe.',
+        description: 'Take 1 tablet daily every morning with water. 90-day refill authorized by Dr. Aisha Rahman.',
         createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
         fileUrl: ''
     },
@@ -34,6 +35,7 @@ const DEMO_PATIENT_DOCUMENTS = [
 
 export default function PatientDashboard() {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [documents, setDocuments] = useState(DEMO_PATIENT_DOCUMENTS);
 
     useEffect(() => {
@@ -57,58 +59,110 @@ export default function PatientDashboard() {
         }
     }, [user]);
 
+    const prescriptionCount = documents.filter(d => d.documentType === 'PRESCRIPTION').length || 1;
+
     return (
         <motion.div 
             className="dashboard-container"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
         >
-            <header className="page-header">
-                <h1 style={{ fontFamily: '"Playfair Display", serif' }}>Patient Portal</h1>
-                <p>View your health summary, documents, and upcoming visits.</p>
+            {/* Header */}
+            <header className="dashboard-header">
+                <div>
+                    <div className="system-eyebrow">Patient Portal · Health Records</div>
+                    <h1>Patient Portal</h1>
+                    <div className="header-desc">
+                        Personal clinical summary, active prescriptions, and diagnostic documents
+                    </div>
+                </div>
+                <div>
+                    <button 
+                        className="btn-primary-action"
+                        onClick={() => navigate('/app/appointments')}
+                    >
+                        <Calendar size={15} />
+                        <span>Book Appointment</span>
+                    </button>
+                </div>
             </header>
             
-            <div className="metrics-grid">
-                <div className="metric-card glass-panel">
-                    <h3>Next Appointment</h3>
-                    <p className="value" style={{ color: 'var(--color-1)', fontSize: '1.5rem' }}>Oct 12, 10:30 AM</p>
+            {/* Metrics Strip */}
+            <section className="metrics-strip">
+                <div className="metric-strip-item">
+                    <span className="metric-label">Next Scheduled Visit</span>
+                    <div className="metric-value" style={{ fontSize: '2rem' }}>Oct 12</div>
+                    <span className="metric-subtext">10:30 AM · Cardiology Outpatient Clinic</span>
                 </div>
-                <div className="metric-card glass-panel">
-                    <h3>Active Prescriptions</h3>
-                    <p className="value" style={{ color: 'var(--color-3)' }}>{documents.filter(d => d.documentType === 'PRESCRIPTION').length || 2}</p>
-                </div>
-            </div>
 
-            <div className="glass-panel" style={{ marginTop: '2rem', padding: '2rem' }}>
-                <h2 style={{ marginBottom: '1.5rem', fontFamily: '"Playfair Display", serif' }}>Medical Records & Bills</h2>
-                
-                {documents.length === 0 ? (
-                    <p style={{ color: 'var(--text-secondary)' }}>No records uploaded yet.</p>
-                ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {documents.map(doc => (
-                            <div key={doc.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
-                                <FileText size={28} color="var(--color-4)" />
-                                <div style={{ flex: 1 }}>
-                                    <h4 style={{ margin: '0 0 0.25rem 0', display: 'flex', justifyContent: 'space-between' }}>
-                                        {doc.title} 
-                                        <span style={{ fontSize: '0.75rem', fontWeight: 'normal', color: 'var(--text-secondary)' }}>{new Date(doc.createdAt).toLocaleDateString()}</span>
-                                    </h4>
-                                    <span style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem', background: 'var(--color-5)', color: 'var(--color-1)', borderRadius: '4px', textTransform: 'uppercase' }}>
-                                        {doc.documentType.replace('_', ' ')}
-                                    </span>
-                                    <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>{doc.description}</p>
-                                    {doc.fileUrl && (
-                                        <a href={doc.fileUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: 'var(--color-4)', textDecoration: 'none', display: 'inline-block', marginTop: '0.5rem' }}>
-                                            View Attached File &rarr;
-                                        </a>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
+                <div className="metric-strip-item">
+                    <span className="metric-label">Active Prescriptions</span>
+                    <div className="metric-value">{prescriptionCount}</div>
+                    <span className="metric-subtext">Lisinopril 10mg (90-day supply active)</span>
+                </div>
+
+                <div className="metric-strip-item">
+                    <span className="metric-label">Clinical Records on File</span>
+                    <div className="metric-value">{documents.length}</div>
+                    <span className="metric-subtext">All verified by attending physicians</span>
+                </div>
+            </section>
+
+            {/* Medical Records Table */}
+            <section className="editorial-table-container">
+                <div className="editorial-table-header">
+                    <div>
+                        <h2>Medical Records & Diagnostic Reports</h2>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                            Official clinical documents, lab findings, and pharmacy authorizations
+                        </span>
                     </div>
-                )}
-            </div>
+                </div>
+
+                <div className="editorial-row editorial-row-header">
+                    <div>Document Name</div>
+                    <div>Category</div>
+                    <div>Clinical Summary</div>
+                    <div>Date</div>
+                    <div style={{ textAlign: 'right' }}>Action</div>
+                </div>
+
+                {documents.map(doc => (
+                    <div key={doc.id} className="editorial-row">
+                        <div>
+                            <div style={{ fontWeight: 600, color: 'var(--color-1)', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                                <FileText size={16} color="var(--color-4)" />
+                                <span>{doc.title}</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <span style={{ fontSize: '0.72rem', padding: '0.2rem 0.5rem', background: 'var(--color-6)', color: 'var(--color-4)', borderRadius: '3px', fontWeight: 600, textTransform: 'uppercase' }}>
+                                {doc.documentType.replace('_', ' ')}
+                            </span>
+                        </div>
+
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
+                            {doc.description}
+                        </div>
+
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                            {new Date(doc.createdAt).toLocaleDateString()}
+                        </div>
+
+                        <div style={{ textAlign: 'right' }}>
+                            <button 
+                                className="row-action-btn edit"
+                                onClick={() => alert(`Downloading ${doc.title}...`)}
+                            >
+                                <Download size={13} />
+                                <span>Download</span>
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </section>
         </motion.div>
     );
 }
