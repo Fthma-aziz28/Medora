@@ -5,12 +5,10 @@ import AddAppointmentModal from '../components/AddAppointmentModal';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../apiConfig';
 import { DEMO_APPOINTMENTS } from '../demoData';
-import DateRangePicker from '@/components/ui/date-range-picker';
 import './Roster.css';
 
 export default function Appointments() {
     const [appointments, setAppointments] = useState(DEMO_APPOINTMENTS);
-    const [dateRange, setDateRange] = useState(null);
     const [editingAppt, setEditingAppt] = useState(null);
     const [isAddOpen, setIsAddOpen] = useState(false);
     const { user } = useAuth();
@@ -51,16 +49,6 @@ export default function Appointments() {
         }
     };
 
-    const displayedAppointments = appointments.filter(a => {
-        if (!dateRange || !dateRange.start || !dateRange.end) return true;
-        const d = new Date(a.appointmentDate);
-        const start = new Date(dateRange.start);
-        start.setHours(0,0,0,0);
-        const end = new Date(dateRange.end);
-        end.setHours(23,59,59,999);
-        return d >= start && d <= end;
-    });
-
     return (
         <div className="roster-container">
             <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
@@ -68,21 +56,15 @@ export default function Appointments() {
                     <h1>Appointments</h1>
                     <p>Patient scheduling (HIPAA masked)</p>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                    <DateRangePicker 
-                        onChange={setDateRange} 
-                        placeholder="Filter by Date"
-                    />
-                    {(user?.role === 'ADMIN' || user?.role === 'DOCTOR') && (
-                        <button 
-                            className="primary-btn" 
-                            onClick={() => setIsAddOpen(true)}
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                        >
-                            <Plus size={18} /> Add Appointment
-                        </button>
-                    )}
-                </div>
+                {(user?.role === 'ADMIN' || user?.role === 'DOCTOR') && (
+                    <button 
+                        className="primary-btn" 
+                        onClick={() => setIsAddOpen(true)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                        <Plus size={18} /> Add Appointment
+                    </button>
+                )}
             </header>
 
             <div className="table-wrapper">
@@ -99,7 +81,7 @@ export default function Appointments() {
                         </tr>
                     </thead>
                     <tbody>
-                        {displayedAppointments.map(a => (
+                        {appointments.map(a => (
                             <tr key={a.id}>
                                 <td data-label="ID">{a.id}</td>
                                 <td data-label="Doctor">{a.doctorName || `Dr. #${a.doctorId}`}</td>
