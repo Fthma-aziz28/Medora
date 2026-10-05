@@ -131,13 +131,13 @@ export default function Login() {
                             <button 
                                 type="button" 
                                 className="demo-role-btn patient"
-                                onClick={() => handleQuickLogin('patient@medora.com', 'password')}
+                                onClick={() => handleQuickLogin('emily@medora.com', 'password')}
                                 disabled={isSubmitting}
                             >
                                 <User size={16} />
                                 <div>
                                     <div className="role-name">Patient</div>
-                                    <div className="role-desc">Appointments & Schedule</div>
+                                    <div className="role-desc">emily@medora.com</div>
                                 </div>
                             </button>
                         </div>

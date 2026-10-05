@@ -80,7 +80,7 @@ export function AuthProvider({ children }) {
         if (cleanEmail.includes('doctor') || cleanEmail.includes('aisha')) {
             role = 'DOCTOR';
             name = 'Dr. Aisha Rahman';
-        } else if (cleanEmail.includes('patient') || cleanEmail.includes('chen')) {
+        } else if (cleanEmail.includes('patient') || cleanEmail.includes('chen') || cleanEmail.includes('emily')) {
             role = 'PATIENT';
             name = 'Emily Chen';
         } else if (cleanEmail.includes('admin')) {
@@ -91,7 +91,7 @@ export function AuthProvider({ children }) {
         const demoUser = {
             id: role === 'ADMIN' ? 1 : (role === 'DOCTOR' ? 2 : 3),
             name,
-            email: email || `${role.toLowerCase()}@medora.com`,
+            email: email ? email.trim() : (role === 'PATIENT' ? 'emily@medora.com' : `${role.toLowerCase()}@medora.com`),
             role
         };
 

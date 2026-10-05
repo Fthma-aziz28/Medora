@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Calendar, PlusCircle, ArrowUpRight, Download } from 'lucide-react';
+import { FileText, Calendar, Download, Clock } from 'lucide-react';
 import { API_BASE_URL } from '../apiConfig';
 import './Dashboard.css';
 
@@ -37,11 +37,13 @@ export default function PatientDashboard() {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [documents, setDocuments] = useState(DEMO_PATIENT_DOCUMENTS);
+    const patientName = user?.name || 'Emily Chen';
+    const patientEmail = user?.email || 'emily@medora.com';
 
     useEffect(() => {
-        if (user?.email) {
+        if (patientEmail) {
             const token = localStorage.getItem('medora_token');
-            fetch(`${API_BASE_URL}/api/documents?patientEmail=${encodeURIComponent(user.email)}`, {
+            fetch(`${API_BASE_URL}/api/documents?patientEmail=${encodeURIComponent(patientEmail)}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
                 .then(res => {
@@ -57,7 +59,7 @@ export default function PatientDashboard() {
                     console.warn("Using demo documents fallback for patient:", err);
                 });
         }
-    }, [user]);
+    }, [patientEmail]);
 
     const prescriptionCount = documents.filter(d => d.documentType === 'PRESCRIPTION').length || 1;
 
@@ -74,7 +76,7 @@ export default function PatientDashboard() {
                     <div className="system-eyebrow">Patient Portal · Health Records</div>
                     <h1>Patient Portal</h1>
                     <div className="header-desc">
-                        Personal clinical summary, active prescriptions, and diagnostic documents
+                        Welcome, {patientName} ({patientEmail}) · Personal clinical summary, active prescriptions, and diagnostic documents
                     </div>
                 </div>
                 <div>
@@ -92,8 +94,8 @@ export default function PatientDashboard() {
             <section className="metrics-strip">
                 <div className="metric-strip-item">
                     <span className="metric-label">Next Scheduled Visit</span>
-                    <div className="metric-value" style={{ fontSize: '2rem' }}>Oct 12</div>
-                    <span className="metric-subtext">10:30 AM · Cardiology Outpatient Clinic</span>
+                    <div className="metric-value" style={{ fontSize: '2.1rem' }}>Today 09:00</div>
+                    <span className="metric-subtext">Dr. Aisha Rahman · Cardiology Room 302</span>
                 </div>
 
                 <div className="metric-strip-item">
