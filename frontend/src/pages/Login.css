@@ -269,3 +269,82 @@
         border-radius: 12px;
     }
 }
+
+/* ==========================================================================
+   Portal Tabs (Staff / Patient toggle)
+   ========================================================================== */
+
+.portal-tabs {
+    display: flex;
+    gap: 0;
+    background: rgba(35, 83, 71, 0.08);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 1.5rem;
+}
+
+.portal-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.55rem 0.75rem;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--color-3);
+    font-size: 0.83rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.02em;
+}
+
+.portal-tab.active {
+    background: var(--color-1);
+    color: var(--color-beige);
+    box-shadow: 0 2px 8px rgba(5, 31, 32, 0.2);
+}
+
+.portal-tab:not(.active):hover {
+    background: rgba(35, 83, 71, 0.12);
+    color: var(--color-2);
+}
+
+/* ==========================================================================
+   Patient Sub-tabs (Sign In / New Patient)
+   ========================================================================== */
+
+.patient-subtabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid rgba(35, 83, 71, 0.12);
+    margin-bottom: 1.25rem;
+}
+
+.patient-subtab {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--color-3);
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: -2px;
+}
+
+.patient-subtab.active {
+    color: var(--color-1);
+    border-bottom-color: var(--color-4);
+}
+
+.patient-subtab:not(.active):hover {
+    color: var(--color-2);
+}
+

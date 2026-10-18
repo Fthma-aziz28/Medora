@@ -141,4 +141,39 @@ public class AppointmentDao {
         }
         return list;
     }
+
+    /**
+     * Returns appointments for a specific patient user (used by /api/appointments/mine).
+     * Falls back to matching by patient_name if patient_user_id column is not yet populated.
+     */
+    public List<Appointment> findByPatientUserId(Long patientUserId) {
+        List<Appointment> list = new ArrayList<>();
+        String sql = "SELECT a.*, u.name as doctor_name FROM appointments a " +
+                     "JOIN doctors d ON a.doctor_id = d.id " +
+                     "JOIN users u ON d.user_id = u.id " +
+                     "WHERE a.patient_user_id = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, patientUserId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Appointment a = new Appointment();
+                    a.setId(rs.getLong("id"));
+                    a.setDoctorId(rs.getLong("doctor_id"));
+                    a.setDoctorName(rs.getString("doctor_name"));
+                    a.setPatientName(rs.getString("patient_name"));
+                    a.setIsEmergencyReplacement(rs.getBoolean("is_emergency_replacement"));
+                    if (rs.getDate("appointment_date") != null) a.setAppointmentDate(rs.getDate("appointment_date").toLocalDate());
+                    if (rs.getTime("start_time") != null) a.setStartTime(rs.getTime("start_time").toLocalTime());
+                    if (rs.getTime("end_time") != null) a.setEndTime(rs.getTime("end_time").toLocalTime());
+                    a.setStatus(rs.getString("status"));
+                    list.add(a);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("DB error", e);
+        }
+        return list;
+    }
 }
+

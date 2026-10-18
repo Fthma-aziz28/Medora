@@ -10,14 +10,34 @@ export default function LeaveApplication() {
     const { user } = useAuth();
     const [leaves, setLeaves] = useState(DEMO_LEAVES);
     const [successMsg, setSuccessMsg] = useState('');
+    const [errorMsg, setErrorMsg] = useState('');
+    // doctorId holds the doctors-table PK (NOT users.id — they differ)
+    const [doctorId, setDoctorId] = useState(null);
     const [formData, setFormData] = useState({
-        doctorId: user?.id || 1,
         doctorName: user?.name || 'Dr. Aisha Rahman',
         doctorSpecialty: 'Cardiology',
         startDate: '',
         endDate: '',
         reason: ''
     });
+
+    // Resolve this doctor's doctors-table ID from /api/doctors/me
+    const fetchDoctorProfile = async () => {
+        if (!API_BASE_URL) return;
+        try {
+            const token = localStorage.getItem('medora_token');
+            const res = await fetch(`${API_BASE_URL}/api/doctors/me`, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+            if (res.ok) {
+                const doc = await res.json();
+                // doc.id is the doctors table PK — this is what leave_requests.doctor_id expects
+                if (doc?.id) setDoctorId(doc.id);
+            }
+        } catch (err) {
+            console.warn('Could not fetch doctor profile, using user.id fallback:', err);
+        }
+    };
 
     const fetchLeaves = async () => {
         try {
@@ -36,14 +56,20 @@ export default function LeaveApplication() {
     };
 
     useEffect(() => {
+        fetchDoctorProfile();
         fetchLeaves();
     }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setErrorMsg('');
+
+        // Use the resolved doctors-table ID; fall back to user.id only in demo mode
+        const resolvedDoctorId = doctorId || user?.id || 1;
+
         const newLeave = {
             id: Date.now(),
-            doctorId: user?.id || 1,
+            doctorId: resolvedDoctorId,
             doctorName: user?.name || 'Dr. Aisha Rahman',
             doctorSpecialty: 'Cardiology',
             startDate: formData.startDate,
@@ -55,23 +81,28 @@ export default function LeaveApplication() {
         try {
             if (API_BASE_URL) {
                 const token = localStorage.getItem('medora_token');
-                await fetch(`${API_BASE_URL}/api/leaves`, {
+                const res = await fetch(`${API_BASE_URL}/api/leaves`, {
                     method: 'POST',
-                    headers: { 
+                    headers: {
                         'Content-Type': 'application/json',
                         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                     },
                     body: JSON.stringify(newLeave)
                 });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    setErrorMsg(err.error || 'Failed to submit leave request. Please try again.');
+                    return;
+                }
             }
         } catch (err) {
-            console.warn("Backend unavailable, adding leave to local state:", err);
-        } finally {
-            setLeaves(prev => [newLeave, ...prev]);
-            setFormData({ ...formData, startDate: '', endDate: '', reason: '' });
-            setSuccessMsg('Your leave application has been submitted successfully for administrative review.');
-            setTimeout(() => setSuccessMsg(''), 5000);
+            console.warn('Backend unavailable, adding leave to local state:', err);
         }
+
+        setLeaves(prev => [newLeave, ...prev]);
+        setFormData({ ...formData, startDate: '', endDate: '', reason: '' });
+        setSuccessMsg('Your leave application has been submitted successfully for administrative review.');
+        setTimeout(() => setSuccessMsg(''), 5000);
     };
 
     return (
@@ -90,6 +121,11 @@ export default function LeaveApplication() {
                 <div style={{ padding: '0.85rem 1.25rem', background: 'rgba(35, 83, 71, 0.15)', border: '1px solid rgba(35, 83, 71, 0.3)', borderRadius: '8px', color: 'var(--color-1)', marginTop: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500 }}>
                     <CheckCircle2 size={18} color="var(--color-4)" />
                     {successMsg}
+                </div>
+            )}
+            {errorMsg && (
+                <div style={{ padding: '0.85rem 1.25rem', background: 'rgba(185,28,28,0.08)', border: '1px solid rgba(185,28,28,0.2)', borderRadius: '8px', color: '#b91c1c', marginTop: '1.25rem', fontWeight: 500 }}>
+                    {errorMsg}
                 </div>
             )}
 

@@ -1,114 +1,271 @@
+/* ==========================================================================
+   Admin Calendar Overview — Medora Hospital Operations
+   Improves: header layout, cell sizing, spacing, legend, doctor filter,
+             event readability, and responsive behaviour.
+   ========================================================================== */
+
 .admin-calendar-container {
-    padding: 2rem;
-    margin: 2rem 0;
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    color: var(--text-primary);
-    background: #FFFFFF;
-    border: 1px solid var(--border-subtle);
-    border-radius: 4px;
-    overflow-x: auto;
+    padding: 1.75rem 2rem 2rem;
+    border-radius: 14px;
+    margin-top: 2rem;
 }
 
+/* ── Header ─────────────────────────────────────────────────────────────── */
+
 .calendar-header {
-    margin-bottom: 2rem;
-    color: var(--color-1);
+    margin-bottom: 1.25rem;
+}
+
+.calendar-header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .calendar-header h2 {
-    font-size: 1.75rem;
-    font-weight: 600;
-    font-family: var(--font-heading);
+    margin: 0 0 0.2rem;
+    font-size: 1.35rem;
+    font-weight: 700;
+    font-family: 'Playfair Display', serif;
+    color: var(--color-1);
 }
 
 .calendar-header p {
-    color: var(--text-muted);
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--color-3);
 }
+
+/* ── Doctor Filter Dropdown ─────────────────────────────────────────────── */
+
+.calendar-filter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.calendar-filter label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-3);
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.calendar-filter select {
+    padding: 0.45rem 0.85rem;
+    border-radius: 7px;
+    border: 1px solid rgba(35, 83, 71, 0.25);
+    background: rgba(255, 255, 255, 0.82);
+    color: var(--color-1);
+    font-size: 0.85rem;
+    font-family: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+    min-width: 180px;
+}
+
+.calendar-filter select:focus {
+    border-color: var(--color-4);
+    box-shadow: 0 0 0 3px rgba(35, 83, 71, 0.12);
+}
+
+/* ── Calendar Wrapper ───────────────────────────────────────────────────── */
 
 .calendar-wrapper {
-    background: transparent;
-    border-radius: 4px;
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(35, 83, 71, 0.12);
 }
 
-/* React Big Calendar Overrides */
+/* react-big-calendar overrides */
+
 .rbc-calendar {
-    font-family: var(--font-ui);
-    background-color: #FFFFFF;
-    color: var(--text-primary);
-}
-
-.rbc-toolbar button {
-    color: var(--text-secondary);
-    border-color: var(--border-subtle);
-    border-radius: 4px;
-    font-family: inherit;
-    font-size: 0.8rem;
-    font-weight: 500;
-    transition: all 0.15s ease;
-}
-
-.rbc-toolbar button:active,
-.rbc-toolbar button.rbc-active {
-    background-color: var(--color-surface-subtle);
+    font-family: 'Montserrat', 'Inter', sans-serif;
+    font-size: 0.82rem;
     color: var(--color-1);
-    box-shadow: none;
-    border-color: var(--border-strong);
 }
 
-.rbc-month-view, .rbc-time-view, .rbc-agenda-view {
-    border-color: var(--border-subtle);
-}
-
-.rbc-day-bg + .rbc-day-bg, .rbc-month-row + .rbc-month-row {
-    border-color: var(--border-subtle);
-}
-
+/* Header row (Mon Tue Wed …) */
 .rbc-header {
-    border-color: var(--border-subtle);
-    padding: 0.6rem;
-    font-weight: 600;
-    font-size: 0.75rem;
+    padding: 8px 4px;
+    font-weight: 700;
+    font-size: 0.78rem;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-muted);
-    background-color: var(--color-surface-subtle);
+    letter-spacing: 0.05em;
+    color: var(--color-3);
+    border-bottom: 2px solid rgba(35, 83, 71, 0.15) !important;
+    text-align: center;
 }
 
-.rbc-off-range-bg {
-    background: #F8F8F5;
+/* Date numbers in month view */
+.rbc-date-cell {
+    padding: 4px 6px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-align: right;
 }
 
-.rbc-today {
-    background: rgba(218, 241, 222, 0.15);
+/* Month view: give each cell a minimum height so events aren't cut off */
+.rbc-month-row {
+    min-height: 100px;
 }
 
-.rbc-header.rbc-today {
-    background: var(--color-6);
-    color: var(--color-4);
+.rbc-row-content {
+    min-height: 80px;
 }
 
-.rbc-time-content > * + * > * {
-    border-color: var(--border-subtle);
+/* Week / Day view: time slots */
+.rbc-time-slot {
+    min-height: 24px;
+    border-top: 1px solid rgba(35, 83, 71, 0.06) !important;
 }
 
 .rbc-timeslot-group {
-    border-color: var(--border-subtle);
+    border-bottom: 1px solid rgba(35, 83, 71, 0.1) !important;
 }
 
-.rbc-time-header-content {
-    border-color: var(--border-subtle);
+/* Today highlight */
+.rbc-today {
+    background-color: rgba(35, 83, 71, 0.07) !important;
 }
 
-.rbc-time-view {
-    border: none;
+/* Toolbar (navigation buttons + month/week/day selector) */
+.rbc-toolbar {
+    padding: 0.75rem 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    border-bottom: 1px solid rgba(35, 83, 71, 0.12);
+    background: rgba(218, 241, 222, 0.25);
 }
 
-.rbc-time-header {
-    margin-right: 0 !important;
+.rbc-toolbar button {
+    padding: 0.35rem 0.8rem;
+    border-radius: 6px;
+    border: 1px solid rgba(35, 83, 71, 0.2);
+    background: rgba(255, 255, 255, 0.75);
+    color: var(--color-1);
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.rbc-toolbar button:hover {
+    background: var(--color-6);
+    border-color: var(--color-4);
+}
+
+.rbc-toolbar button.rbc-active {
+    background: var(--color-1) !important;
+    color: var(--color-beige) !important;
+    border-color: var(--color-1) !important;
+}
+
+.rbc-toolbar-label {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--color-1);
+    font-family: 'Playfair Display', serif;
+}
+
+/* Month/week cell borders */
+.rbc-day-bg + .rbc-day-bg {
+    border-left: 1px solid rgba(35, 83, 71, 0.08) !important;
+}
+
+.rbc-month-row + .rbc-month-row {
+    border-top: 1px solid rgba(35, 83, 71, 0.12) !important;
+}
+
+/* Off-range days (greyed out) */
+.rbc-off-range-bg {
+    background: rgba(35, 83, 71, 0.03) !important;
+}
+
+.rbc-off-range .rbc-button-link {
+    color: #bbb !important;
+}
+
+/* Event pill "show more" */
+.rbc-show-more {
+    font-size: 0.72rem;
+    color: var(--color-4) !important;
+    font-weight: 700;
+    background: transparent;
+}
+
+/* ── Legend ─────────────────────────────────────────────────────────────── */
+
+.calendar-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.25rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(35, 83, 71, 0.12);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.legend-swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.legend-label {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--color-3);
+    white-space: nowrap;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .admin-calendar-container {
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+
+    .calendar-header-row {
+        flex-direction: column;
+    }
+
+    .calendar-filter select {
+        min-width: 100%;
+        width: 100%;
+    }
+
+    .rbc-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .rbc-toolbar-label {
+        font-size: 0.88rem;
+    }
+
+    .calendar-wrapper {
+        border-radius: 8px;
+    }
+
+    .calendar-legend {
+        gap: 0.5rem 1rem;
+    }
 }

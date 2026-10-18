@@ -180,4 +180,41 @@ public class DoctorDao {
         }
         return null;
     }
+
+    /**
+     * Finds the doctors record that belongs to a given user account.
+     * Used by /api/doctors/me to resolve a logged-in doctor's doctor.id.
+     */
+    public Doctor findByUserId(Long userId) {
+        String sql = "SELECT d.*, u.name, u.email, u.status, dep.name as department_name " +
+                     "FROM doctors d " +
+                     "LEFT JOIN users u ON d.user_id = u.id " +
+                     "LEFT JOIN departments dep ON d.department_id = dep.id " +
+                     "WHERE d.user_id = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Doctor d = new Doctor();
+                    d.setId(rs.getLong("id"));
+                    d.setUserId(rs.getLong("user_id"));
+                    d.setDepartmentId(rs.getLong("department_id"));
+                    d.setSpecialty(rs.getString("specialty"));
+                    d.setWorkingDays(rs.getString("working_days"));
+                    d.setStartTime(rs.getString("start_time"));
+                    d.setEndTime(rs.getString("end_time"));
+                    d.setSlotMins(rs.getInt("slot_mins"));
+                    d.setName(rs.getString("name"));
+                    d.setEmail(rs.getString("email"));
+                    d.setStatus(rs.getString("status"));
+                    d.setDepartmentName(rs.getString("department_name"));
+                    return d;
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("DB error", e);
+        }
+        return null;
+    }
 }

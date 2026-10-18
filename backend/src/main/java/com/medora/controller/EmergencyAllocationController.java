@@ -10,13 +10,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Handles emergency slot allocation when a doctor's leave is approved.
+ * CORS is managed globally by CorsConfig — no per-controller annotation needed.
+ */
 @RestController
 @RequestMapping("/api/emergency")
-@CrossOrigin(origins = "http://localhost:5173")
 public class EmergencyAllocationController {
 
     @Autowired private FairnessEngineService fairnessEngine;
@@ -30,15 +35,17 @@ public class EmergencyAllocationController {
         LeaveRequest leave = leaveRequestDao.findById(leaveId);
         if (leave == null) return ResponseEntity.notFound().build();
 
-        // Find appointments that overlap with this leave
         List<Appointment> allAppointments = appointmentDao.findAll();
         List<Appointment> conflictingAppointments = allAppointments.stream()
             .filter(a -> a.getDoctorId().equals(leave.getDoctorId()))
-            .filter(a -> !a.getAppointmentDate().isBefore(leave.getStartDate()) && !a.getAppointmentDate().isAfter(leave.getEndDate()))
+            .filter(a -> a.getAppointmentDate() != null
+                      && !a.getAppointmentDate().isBefore(leave.getStartDate())
+                      && !a.getAppointmentDate().isAfter(leave.getEndDate()))
             .collect(Collectors.toList());
 
         List<AllocationAnalysisResponse> responses = new ArrayList<>();
         Doctor originalDoctor = doctorDao.findById(leave.getDoctorId());
+        List<Doctor> allDocs = doctorDao.findAll();
 
         for (Appointment vacantSlot : conflictingAppointments) {
             AllocationAnalysisResponse response = new AllocationAnalysisResponse();
@@ -46,19 +53,16 @@ public class EmergencyAllocationController {
             response.setOriginalDoctor(originalDoctor);
 
             List<CandidateScore> candidates = fairnessEngine.findFairReplacements(vacantSlot);
-            
-            // Populate names cleanly from allDocs
-            List<Doctor> allDocs = doctorDao.findAll();
+
             for (CandidateScore c : candidates) {
                 String docName = allDocs.stream()
                     .filter(doc -> doc.getId().equals(c.getDoctorId()))
                     .map(Doctor::getName)
                     .filter(name -> name != null && !name.isEmpty())
                     .findFirst()
-                    .orElse("Dr. " + c.getDoctorId());
+                    .orElse("Dr. (ID " + c.getDoctorId() + ")");
                 c.setDoctorName(docName);
             }
-
             response.setCandidates(candidates);
             responses.add(response);
         }
@@ -68,28 +72,39 @@ public class EmergencyAllocationController {
 
     @PostMapping("/confirm")
     public ResponseEntity<?> confirmAllocation(@RequestBody EmergencyAllocation allocation) {
-        // Find the appointment and update it
+        if (allocation.getReplacementDoctorId() == null || allocation.getOriginalDoctorId() == null) {
+            return ResponseEntity.badRequest()
+                    .body("Missing required allocation fields.");
+        }
+
         List<Appointment> allAppointments = appointmentDao.findAll();
         Appointment targetAppt = allAppointments.stream()
-            .filter(a -> a.getDoctorId().equals(allocation.getOriginalDoctorId()) && a.getAppointmentDate().equals(allocation.getSlotDate()) && a.getStartTime().equals(allocation.getStartTime()))
-            .findFirst().orElse(null);
+            .filter(a -> a.getDoctorId() != null
+                      && a.getDoctorId().equals(allocation.getOriginalDoctorId())
+                      && a.getAppointmentDate() != null
+                      && a.getAppointmentDate().equals(allocation.getSlotDate())
+                      && a.getStartTime() != null
+                      && a.getStartTime().equals(allocation.getStartTime()))
+            .findFirst()
+            .orElse(null);
 
         if (targetAppt != null) {
-            // FINAL CONFIRMATION RECHECK
             List<CandidateScore> freshCandidates = fairnessEngine.findFairReplacements(targetAppt);
-            boolean stillEligible = freshCandidates.stream().anyMatch(c -> c.getDoctorId().equals(allocation.getReplacementDoctorId()));
-            
+            boolean stillEligible = freshCandidates.stream()
+                    .anyMatch(c -> c.getDoctorId().equals(allocation.getReplacementDoctorId()));
+
             if (!stillEligible) {
-                return ResponseEntity.status(409).body("Doctor availability has changed. Please review the updated candidates.");
+                return ResponseEntity.status(409)
+                        .body("Doctor availability has changed. Please review updated candidates.");
             }
 
             targetAppt.setDoctorId(allocation.getReplacementDoctorId());
             targetAppt.setIsEmergencyReplacement(true);
             appointmentDao.updateAppointment(targetAppt.getId(), targetAppt);
         }
-
+        // Even if no conflicting appointment found, record the allocation
         emergencyAllocationDao.save(allocation);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(Map.of("message", "Emergency allocation confirmed successfully."));
     }
 
     @GetMapping("/history")

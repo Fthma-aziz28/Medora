@@ -20,19 +20,39 @@ public class UserDao {
             ps.setString(1, email);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    User user = new User();
-                    user.setId(rs.getLong("id"));
-                    user.setName(rs.getString("name"));
-                    user.setEmail(rs.getString("email"));
-                    user.setPasswordHash(rs.getString("password_hash"));
-                    user.setRole(rs.getString("role"));
-                    user.setStatus(rs.getString("status"));
-                    return Optional.of(user);
+                    return Optional.of(mapRow(rs));
                 }
             }
         } catch (SQLException e) {
             throw new RuntimeException("Database connection error", e);
         }
         return Optional.empty();
+    }
+
+    public Optional<User> findById(Long id) {
+        String sql = "SELECT * FROM users WHERE id = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapRow(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Database connection error", e);
+        }
+        return Optional.empty();
+    }
+
+    private User mapRow(ResultSet rs) throws SQLException {
+        User user = new User();
+        user.setId(rs.getLong("id"));
+        user.setName(rs.getString("name"));
+        user.setEmail(rs.getString("email"));
+        user.setPasswordHash(rs.getString("password_hash"));
+        user.setRole(rs.getString("role"));
+        user.setStatus(rs.getString("status"));
+        return user;
     }
 }
