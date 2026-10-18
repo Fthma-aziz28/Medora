@@ -205,9 +205,16 @@ export const DEMO_ANALYSIS = [
                 doctorName: 'Dr. Sara Lin',
                 fairnessScore: 94.2,
                 weeklyDutyHours: 24,
-                restHoursBeforeSlot: 16.5,
-                consecutiveDutyDays: 2,
+                hoursSincePreviousDuty: 16,
+                consecutiveDuty: false,
+                recentEmergencyAssignments: 0,
                 qualificationMatch: true,
+                recommendationReason: [
+                    'Lowest weekly duty accumulation (24h)',
+                    'Exceeded mandatory rest window (16.5h rest interval)',
+                    'Exact clinical specialty match in Cardiology'
+                ],
+                negativeFactors: [],
                 justification: 'Lowest weekly duty accumulation (24h) and exceeded minimum rest window requirement (16.5h).'
             },
             {
@@ -215,9 +222,18 @@ export const DEMO_ANALYSIS = [
                 doctorName: 'Dr. Ahmed Khan',
                 fairnessScore: 78.6,
                 weeklyDutyHours: 32,
-                restHoursBeforeSlot: 12.0,
-                consecutiveDutyDays: 3,
+                hoursSincePreviousDuty: 12,
+                consecutiveDuty: false,
+                recentEmergencyAssignments: 1,
                 qualificationMatch: true,
+                recommendationReason: [
+                    'Eligible cross-department replacement candidate',
+                    'Satisfied critical coverage protocol'
+                ],
+                negativeFactors: [
+                    'Higher cumulative duty hours (32h)',
+                    '1 recent emergency allocation'
+                ],
                 justification: 'Eligible cross-department replacement with acceptable rest window.'
             }
         ]
