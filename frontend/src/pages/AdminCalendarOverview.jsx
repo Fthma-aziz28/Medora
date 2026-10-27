@@ -7,33 +7,6 @@ import './AdminCalendarOverview.css';
 
 const localizer = momentLocalizer(moment);
 
-const BASE_EVENTS = [
-    {
-        title: 'Dr. Sarah Jenkins — Emergency Ward',
-        start: moment().startOf('week').add(1, 'days').set({ hour: 8, minute: 0 }).toDate(),
-        end:   moment().startOf('week').add(1, 'days').set({ hour: 16, minute: 0 }).toDate(),
-        type: 'emergency', doctorName: 'Dr. Sarah Jenkins'
-    },
-    {
-        title: 'Dr. Marcus Vance — Cardiology Consults',
-        start: moment().startOf('week').add(1, 'days').set({ hour: 9, minute: 0 }).toDate(),
-        end:   moment().startOf('week').add(1, 'days').set({ hour: 13, minute: 0 }).toDate(),
-        type: 'cardiology', doctorName: 'Dr. Marcus Vance'
-    },
-    {
-        title: 'Dr. Elena Rostova — Outpatient Surgery',
-        start: moment().startOf('week').add(2, 'days').set({ hour: 8, minute: 30 }).toDate(),
-        end:   moment().startOf('week').add(2, 'days').set({ hour: 14, minute: 0 }).toDate(),
-        type: 'surgery', doctorName: 'Dr. Elena Rostova'
-    },
-    {
-        title: 'Hospital Staff Sync & Shift Handover',
-        start: moment().startOf('week').add(4, 'days').set({ hour: 16, minute: 0 }).toDate(),
-        end:   moment().startOf('week').add(4, 'days').set({ hour: 17, minute: 30 }).toDate(),
-        type: 'sync', doctorName: 'All Staff'
-    }
-];
-
 const EVENT_COLORS = {
     emergency:  { bg: '#8EB69B', fg: '#051F20' },
     cardiology: { bg: '#A3C9A8', fg: '#051F20' },
@@ -49,77 +22,161 @@ const EVENT_COLORS = {
 };
 
 const LEGEND_ITEMS = [
-    { label: 'Consult / Appointment', type: 'consult' },
-    { label: 'Emergency Shift',        type: 'emergency' },
-    { label: 'Surgery',                type: 'surgery' },
-    { label: 'Cardiology',             type: 'cardiology' },
-    { label: 'Sync / Handover',        type: 'sync' },
-    { label: 'On Call',                type: 'oncall' },
-    { label: 'Leave',                  type: 'leave' },
+    { label: 'Outpatient Consult',     type: 'consult' },
+    { label: 'Emergency Reassignment', type: 'emergency' },
+    { label: 'Cardiology / Dept Shift',type: 'cardiology' },
+    { label: 'Approved Leave',         type: 'leave' },
+    { label: 'Scheduled Roster Duty',  type: 'oncall' }
 ];
 
 export default function AdminCalendarOverview() {
-    const [allEvents, setAllEvents]   = useState(BASE_EVENTS);
-    const [doctors, setDoctors]       = useState([]);
-    const [filterDoc, setFilterDoc]   = useState('ALL'); // 'ALL' or doctorName string
+    const [allEvents, setAllEvents] = useState([]);
+    const [doctors, setDoctors] = useState([]);
+    const [filterDoc, setFilterDoc] = useState('ALL');
+    const [loading, setLoading] = useState(true);
 
     const loadCalendarData = async () => {
-        if (!API_BASE_URL) return;
+        if (!API_BASE_URL) {
+            setLoading(false);
+            return;
+        }
+
         const token = localStorage.getItem('medora_token');
         const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        const events = [];
 
-        // Load doctors for the filter dropdown
+        let docList = [];
+        // 1. Fetch real doctors
         try {
             const docRes = await fetch(`${API_BASE_URL}/api/doctors`, { headers });
             if (docRes.ok) {
                 const docs = await docRes.json();
-                if (Array.isArray(docs)) setDoctors(docs);
+                if (Array.isArray(docs)) {
+                    docList = docs;
+                    setDoctors(docs);
+                }
             }
         } catch (err) {
             console.warn('Doctor list fetch failed:', err);
         }
 
-        // Load appointments into calendar
+        // 2. Fetch real appointments
         try {
             const apptRes = await fetch(`${API_BASE_URL}/api/appointments`, { headers });
             if (apptRes.ok) {
                 const appts = await apptRes.json();
                 if (Array.isArray(appts)) {
-                    const mappedAppts = appts.map(a => {
-                        const dateStr     = a.appointmentDate || moment().format('YYYY-MM-DD');
-                        const startStr    = a.startTime ? a.startTime.substring(0, 5) : '09:00';
-                        const endStr      = a.endTime   ? a.endTime.substring(0, 5)   : '09:30';
+                    appts.forEach(a => {
+                        const dateStr = a.appointmentDate || moment().format('YYYY-MM-DD');
+                        const startStr = a.startTime ? a.startTime.substring(0, 5) : '09:00';
+                        const endStr = a.endTime ? a.endTime.substring(0, 5) : '09:30';
                         const startMoment = moment(`${dateStr} ${startStr}`, 'YYYY-MM-DD HH:mm');
-                        const endMoment   = moment(`${dateStr} ${endStr}`,   'YYYY-MM-DD HH:mm');
-                        const docName     = a.doctorName || 'Doctor';
-                        return {
-                            id:         `appt-${a.id}`,
-                            title:      `${docName}: ${a.patientName || 'Patient'} (${a.status || 'Confirmed'})`,
-                            start:      startMoment.isValid() ? startMoment.toDate() : new Date(),
-                            end:        endMoment.isValid()   ? endMoment.toDate()   : moment().add(30, 'minutes').toDate(),
-                            type:       'consult',
-                            doctorName: docName,
-                        };
+                        const endMoment = moment(`${dateStr} ${endStr}`, 'YYYY-MM-DD HH:mm');
+                        const docName = a.doctorName || `Dr. #${a.doctorId}`;
+                        const isEmergency = a.isEmergencyReplacement;
+
+                        events.push({
+                            id: `appt-${a.id}`,
+                            title: `${docName}: ${a.patientName} (${a.status || 'Confirmed'})`,
+                            start: startMoment.isValid() ? startMoment.toDate() : new Date(),
+                            end: endMoment.isValid() ? endMoment.toDate() : moment().add(30, 'minutes').toDate(),
+                            type: isEmergency ? 'emergency' : 'consult',
+                            doctorName: docName
+                        });
                     });
-                    setAllEvents([...BASE_EVENTS, ...mappedAppts]);
                 }
             }
         } catch (err) {
-            console.warn('Calendar appointments fetch failed:', err);
+            console.warn('Appointments fetch failed:', err);
         }
+
+        // 3. Fetch real approved leave requests
+        try {
+            const leaveRes = await fetch(`${API_BASE_URL}/api/leaves`, { headers });
+            if (leaveRes.ok) {
+                const leaves = await leaveRes.json();
+                if (Array.isArray(leaves)) {
+                    leaves.forEach(l => {
+                        if ((l.status || '').toUpperCase() === 'APPROVED') {
+                            const docName = l.doctorName || `Dr. #${l.doctorId}`;
+                            const startM = moment(l.startDate, 'YYYY-MM-DD').startOf('day');
+                            const endM = moment(l.endDate, 'YYYY-MM-DD').endOf('day');
+
+                            events.push({
+                                id: `leave-${l.id}`,
+                                title: `${docName}: Approved Absence (${l.reason || 'Authorized'})`,
+                                start: startM.isValid() ? startM.toDate() : new Date(),
+                                end: endM.isValid() ? endM.toDate() : new Date(),
+                                type: 'leave',
+                                doctorName: docName
+                            });
+                        }
+                    });
+                }
+            }
+        } catch (err) {
+            console.warn('Leave requests fetch failed:', err);
+        }
+
+        // 4. Synthesize real roster shift duties for active doctors
+        if (docList.length > 0) {
+            const startOfWeek = moment().startOf('week');
+            docList.forEach(doc => {
+                if (!doc.workingDays) return;
+                const docName = doc.name || `Dr. #${doc.id}`;
+                const workingDaysStr = doc.workingDays.toLowerCase();
+                const startTimeStr = doc.startTime ? doc.startTime.substring(0, 5) : '08:00';
+                const endTimeStr = doc.endTime ? doc.endTime.substring(0, 5) : '16:00';
+
+                // Check standard days Mon(1) to Fri(5)
+                const dayMap = [
+                    { name: 'mon', num: 1 },
+                    { name: 'tue', num: 2 },
+                    { name: 'wed', num: 3 },
+                    { name: 'thu', num: 4 },
+                    { name: 'fri', num: 5 },
+                    { name: 'sat', num: 6 },
+                    { name: 'sun', num: 7 }
+                ];
+
+                dayMap.forEach(d => {
+                    if (workingDaysStr.includes(d.name) || workingDaysStr.includes(String(d.num))) {
+                        const shiftDate = moment(startOfWeek).add(d.num, 'days').format('YYYY-MM-DD');
+                        const startM = moment(`${shiftDate} ${startTimeStr}`, 'YYYY-MM-DD HH:mm');
+                        const endM = moment(`${shiftDate} ${endTimeStr}`, 'YYYY-MM-DD HH:mm');
+
+                        events.push({
+                            id: `shift-${doc.id}-${d.num}`,
+                            title: `${docName} — ${doc.departmentName || doc.specialty || 'General'} Shift`,
+                            start: startM.toDate(),
+                            end: endM.toDate(),
+                            type: (doc.departmentName || '').toLowerCase().includes('cardio') ? 'cardiology' : 'oncall',
+                            doctorName: docName
+                        });
+                    }
+                });
+            });
+        }
+
+        setAllEvents(events);
+        setLoading(false);
     };
 
     useEffect(() => {
         loadCalendarData();
         const handleSync = () => loadCalendarData();
         window.addEventListener('medora_appointment_updated', handleSync);
-        return () => window.removeEventListener('medora_appointment_updated', handleSync);
+        window.addEventListener('medora_doctor_updated', handleSync);
+        return () => {
+            window.removeEventListener('medora_appointment_updated', handleSync);
+            window.removeEventListener('medora_doctor_updated', handleSync);
+        };
     }, []);
 
     // Apply doctor filter
     const visibleEvents = filterDoc === 'ALL'
         ? allEvents
-        : allEvents.filter(e => (e.doctorName || '').includes(filterDoc));
+        : allEvents.filter(e => (e.doctorName || '').toLowerCase().includes(filterDoc.toLowerCase()));
 
     const eventStyleGetter = (event) => {
         const colors = EVENT_COLORS[event.type] || EVENT_COLORS.default;
@@ -146,7 +203,7 @@ export default function AdminCalendarOverview() {
                 <div className="calendar-header-row">
                     <div>
                         <h2>Hospital Operations Calendar</h2>
-                        <p>Physician shifts, appointments, and duty assignments</p>
+                        <p>Real-time physician shifts, outpatient appointments, and authorized absence coverage</p>
                     </div>
 
                     {/* Doctor filter */}
@@ -157,18 +214,12 @@ export default function AdminCalendarOverview() {
                             value={filterDoc}
                             onChange={e => setFilterDoc(e.target.value)}
                         >
-                            <option value="ALL">All Doctors</option>
+                            <option value="ALL">All Physicians ({doctors.length})</option>
                             {doctors.map(d => (
                                 <option key={d.id} value={d.name || `Doc-${d.id}`}>
-                                    {d.name || `Doctor ${d.id}`}
+                                    {d.name || `Dr. #${d.id}`} ({d.departmentName || 'Staff'})
                                 </option>
                             ))}
-                            {/* Fallback demo names if no backend */}
-                            {doctors.length === 0 && <>
-                                <option value="Dr. Sarah Jenkins">Dr. Sarah Jenkins</option>
-                                <option value="Dr. Marcus Vance">Dr. Marcus Vance</option>
-                                <option value="Dr. Elena Rostova">Dr. Elena Rostova</option>
-                            </>}
                         </select>
                     </div>
                 </div>

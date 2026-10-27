@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Calendar, Clock, User, ArrowRight, PlusCircle, CheckCircle, FileText, AlertCircle } from 'lucide-react';
 import { API_BASE_URL } from '../apiConfig';
-import { DEMO_APPOINTMENTS, DEMO_LEAVES } from '../demoData';
 import './Dashboard.css';
 
 export default function DoctorDashboard() {
@@ -20,8 +19,6 @@ export default function DoctorDashboard() {
     const fetchDoctorData = async () => {
         try {
             if (!API_BASE_URL) {
-                setAppointments(DEMO_APPOINTMENTS);
-                setLeaves(DEMO_LEAVES);
                 setLoading(false);
                 return;
             }
@@ -29,46 +26,42 @@ export default function DoctorDashboard() {
             const token = localStorage.getItem('medora_token');
             const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
-            // 1. Fetch doctors to match profile
+            // 1. Fetch authenticated doctor's profile
             let currentDoc = null;
             try {
-                const docRes = await fetch(`${API_BASE_URL}/api/doctors`, { headers });
-                if (docRes.ok) {
-                    const docList = await docRes.json();
-                    if (Array.isArray(docList)) {
-                        currentDoc = docList.find(d => 
-                            (user?.id && d.userId === user.id) ||
-                            (user?.name && d.name?.toLowerCase().includes(user.name.toLowerCase())) ||
-                            (user?.email && d.email?.toLowerCase() === user.email.toLowerCase())
-                        ) || docList[0];
-                        setDoctorProfile(currentDoc);
+                const meRes = await fetch(`${API_BASE_URL}/api/doctors/me`, { headers });
+                if (meRes.ok) {
+                    currentDoc = await meRes.json();
+                    setDoctorProfile(currentDoc);
+                } else {
+                    // Fallback to doctors list matching by userId or email
+                    const docRes = await fetch(`${API_BASE_URL}/api/doctors`, { headers });
+                    if (docRes.ok) {
+                        const docList = await docRes.json();
+                        if (Array.isArray(docList)) {
+                            currentDoc = docList.find(d => 
+                                (user?.id && d.userId === user.id) ||
+                                (user?.email && d.email?.toLowerCase() === user.email.toLowerCase())
+                            ) || docList[0];
+                            setDoctorProfile(currentDoc);
+                        }
                     }
                 }
             } catch (e) {
-                console.warn("Doctors fetch error:", e);
+                console.warn("Doctor profile fetch error:", e);
             }
 
-            // 2. Fetch live appointments
+            // 2. Fetch live appointments (backend isolates to doctor)
             try {
                 const apptRes = await fetch(`${API_BASE_URL}/api/appointments`, { headers });
                 if (apptRes.ok) {
                     const apptList = await apptRes.json();
                     if (Array.isArray(apptList)) {
-                        // Filter appointments for this doctor (or all if general / Dr. Aisha)
-                        const filtered = apptList.filter(a => {
-                            if (!currentDoc) return true;
-                            if (a.doctorId === currentDoc.id) return true;
-                            if (currentDoc.name && a.doctorName && a.doctorName.toLowerCase().includes(currentDoc.name.toLowerCase())) return true;
-                            return false;
-                        });
-                        setAppointments(filtered.length > 0 ? filtered : apptList);
+                        setAppointments(apptList);
                     }
-                } else {
-                    setAppointments(DEMO_APPOINTMENTS);
                 }
             } catch (e) {
                 console.warn("Appointments fetch error:", e);
-                setAppointments(DEMO_APPOINTMENTS);
             }
 
             // 3. Fetch leaves
@@ -82,14 +75,11 @@ export default function DoctorDashboard() {
                             return l.doctorId === currentDoc.id || 
                                 (currentDoc.name && l.doctorName && l.doctorName.toLowerCase().includes(currentDoc.name.toLowerCase()));
                         });
-                        setLeaves(myLeaves.length > 0 ? myLeaves : leaveList.slice(0, 3));
+                        setLeaves(myLeaves);
                     }
-                } else {
-                    setLeaves(DEMO_LEAVES);
                 }
             } catch (e) {
                 console.warn("Leaves fetch error:", e);
-                setLeaves(DEMO_LEAVES);
             }
         } finally {
             setLoading(false);
@@ -101,16 +91,50 @@ export default function DoctorDashboard() {
 
         const handleSync = () => fetchDoctorData();
         window.addEventListener('medora_appointment_updated', handleSync);
-        return () => window.removeEventListener('medora_appointment_updated', handleSync);
+        window.addEventListener('medora_doctor_updated', handleSync);
+        return () => {
+            window.removeEventListener('medora_appointment_updated', handleSync);
+            window.removeEventListener('medora_doctor_updated', handleSync);
+        };
     }, [user]);
 
-    const upcomingShifts = [
-        { day: 'Monday, Oct 5', time: doctorProfile?.startTime && doctorProfile?.endTime ? `${doctorProfile.startTime.substring(0,5)} – ${doctorProfile.endTime.substring(0,5)}` : '09:00 – 13:00', ward: `${doctorProfile?.departmentName || 'Cardiology'} Ward A`, status: 'Active Today', badgeClass: 'active' },
-        { day: 'Wednesday, Oct 7', time: '09:00 – 13:00', ward: 'Outpatient Clinic Room 302', status: 'Scheduled', badgeClass: 'scheduled' },
-        { day: 'Friday, Oct 9', time: '09:00 – 13:00', ward: `${doctorProfile?.departmentName || 'Cardiology'} Lab`, status: 'Scheduled', badgeClass: 'scheduled' },
-        { day: 'Saturday, Oct 10', time: '12:00 – 18:00', ward: 'Emergency Standby', status: 'Standby', badgeClass: 'standby' }
-    ];
+    // Compute dynamic upcoming shifts based on real workingDays and shift window
+    const computeUpcomingShifts = () => {
+        if (!doctorProfile || !doctorProfile.workingDays) {
+            return [];
+        }
 
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const workingDaysStr = doctorProfile.workingDays.toLowerCase();
+        const timeWindow = `${doctorProfile.startTime ? doctorProfile.startTime.substring(0, 5) : '09:00'} – ${doctorProfile.endTime ? doctorProfile.endTime.substring(0, 5) : '17:00'}`;
+        const dept = doctorProfile.departmentName || doctorProfile.specialty || 'General Practice';
+        const shifts = [];
+
+        // Check the next 7 days starting from today
+        const today = new Date();
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(today);
+            d.setDate(today.getDate() + i);
+            const dayName = days[d.getDay()];
+            const shortName = dayName.substring(0, 3).toLowerCase();
+            const dayNum = d.getDay() === 0 ? 7 : d.getDay(); // 1=Mon ... 7=Sun
+
+            if (workingDaysStr.includes(shortName) || workingDaysStr.includes(String(dayNum))) {
+                const dateLabel = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                const isToday = i === 0;
+                shifts.push({
+                    day: isToday ? `Today (${dateLabel})` : dateLabel,
+                    time: timeWindow,
+                    ward: `${dept} Ward ${isToday ? 'Room 302' : 'Consultation Unit'}`,
+                    status: isToday ? 'Active Today' : 'Scheduled',
+                    badgeClass: isToday ? 'active' : 'scheduled'
+                });
+            }
+        }
+        return shifts;
+    };
+
+    const upcomingShifts = computeUpcomingShifts();
     const confirmedCount = appointments.filter(a => (a.status || '').toUpperCase() === 'CONFIRMED').length;
     const pendingLeavesCount = leaves.filter(l => (l.status || '').toUpperCase() === 'PENDING').length;
 
@@ -157,7 +181,7 @@ export default function DoctorDashboard() {
                 >
                     <span className="metric-label">Assigned Appointments</span>
                     <div className="metric-value">{appointments.length}</div>
-                    <span className="metric-subtext">{confirmedCount} confirmed · {appointments.length} total scheduled</span>
+                    <span className="metric-subtext">{confirmedCount} confirmed · {appointments.length} total in queue</span>
                 </button>
 
                 <button 
@@ -166,8 +190,8 @@ export default function DoctorDashboard() {
                     title="View assigned shift rotations"
                 >
                     <span className="metric-label">Active Working Days</span>
-                    <div className="metric-value">{doctorProfile?.workingDays ? doctorProfile.workingDays.split(',').length : 4}</div>
-                    <span className="metric-subtext">{doctorProfile?.workingDays || 'Mon, Wed, Fri'} · {doctorProfile?.departmentName || 'Cardiology'}</span>
+                    <div className="metric-value">{doctorProfile?.workingDays ? doctorProfile.workingDays.split(',').length : 0}</div>
+                    <span className="metric-subtext">{doctorProfile?.workingDays || 'No regular days assigned'} · {doctorProfile?.departmentName || 'Clinical Staff'}</span>
                 </button>
 
                 <button 
@@ -191,32 +215,38 @@ export default function DoctorDashboard() {
                         <div>
                             <h2>Current Shift Rotation</h2>
                             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                {doctorProfile?.departmentName || 'Cardiology'} Ward & Outpatient Units
+                                {doctorProfile?.departmentName || 'Clinical'} Ward & Outpatient Units
                             </span>
                         </div>
                         <span className="shift-badge active">On Active Rota</span>
                     </div>
 
                     <div className="doctor-schedule-list">
-                        {upcomingShifts.map((shift, idx) => (
-                            <div key={idx} className={`doctor-schedule-item ${shift.badgeClass === 'active' ? 'today' : ''}`}>
-                                <div className="schedule-day-time">
-                                    <strong>{shift.day}</strong>
-                                    <span><Clock size={12} style={{ display: 'inline', marginRight: 4 }} />{shift.time}</span>
-                                </div>
-                                <div className="schedule-ward-info">
-                                    {shift.ward}
-                                </div>
-                                <div>
-                                    <span className={`shift-badge ${shift.badgeClass}`}>{shift.status}</span>
-                                </div>
+                        {upcomingShifts.length === 0 ? (
+                            <div style={{ padding: '2.5rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                No regular working shifts scheduled. Contact the hospital administrator to assign roster days.
                             </div>
-                        ))}
+                        ) : (
+                            upcomingShifts.map((shift, idx) => (
+                                <div key={idx} className={`doctor-schedule-item ${shift.badgeClass === 'active' ? 'today' : ''}`}>
+                                    <div className="schedule-day-time">
+                                        <strong>{shift.day}</strong>
+                                        <span><Clock size={12} style={{ display: 'inline', marginRight: 4 }} />{shift.time}</span>
+                                    </div>
+                                    <div className="schedule-ward-info">
+                                        {shift.ward}
+                                    </div>
+                                    <div>
+                                        <span className={`shift-badge ${shift.badgeClass}`}>{shift.status}</span>
+                                    </div>
+                                </div>
+                            ))
+                        )}
                     </div>
 
                     <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                         <CheckCircle size={14} color="var(--color-4)" />
-                        <span>Mandatory 14-hour rest interval between consecutive duties validated by Fairness Engine.</span>
+                        <span>Mandatory rest interval between consecutive duties validated by Fairness Engine.</span>
                     </div>
                 </div>
 
@@ -224,9 +254,9 @@ export default function DoctorDashboard() {
                 <div className="analytics-card">
                     <div className="analytics-card-header">
                         <div>
-                            <h2>Today's Patient Queue</h2>
+                            <h2>Assigned Patient Queue</h2>
                             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                Live patient bookings scheduled for {doctorProfile?.name || doctorName}
+                                Real-time patient bookings scheduled for {doctorProfile?.name || doctorName}
                             </span>
                         </div>
                         <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-4)', background: 'var(--color-6)', padding: '0.2rem 0.5rem', borderRadius: 3 }}>

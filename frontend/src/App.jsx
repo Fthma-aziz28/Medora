@@ -35,10 +35,12 @@ const RoleBasedOverview = () => {
     // PATIENT sees PatientDashboard
     if (user.role === 'ADMIN') {
         return (
-            <>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem', width: '100%', minWidth: 0 }}>
                 <Dashboard />
-                <AdminCalendarOverview />
-            </>
+                <div style={{ borderTop: '2px solid var(--border-subtle)', paddingTop: '2.5rem' }}>
+                    <AdminCalendarOverview />
+                </div>
+            </div>
         );
     } else if (user.role === 'DOCTOR') {
         return <DoctorDashboard />;

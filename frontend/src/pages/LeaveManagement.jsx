@@ -4,11 +4,10 @@ import { Check, X, Clock, Edit3, Trash2, Calendar, Stethoscope, AlertCircle, Fil
 import { useNavigate } from 'react-router-dom';
 import EditLeaveModal from '../components/EditLeaveModal';
 import { API_BASE_URL } from '../apiConfig';
-import { DEMO_LEAVES } from '../demoData';
 
 export default function LeaveManagement() {
-    const [leaves, setLeaves] = useState(DEMO_LEAVES);
-    const [loading, setLoading] = useState(false);
+    const [leaves, setLeaves] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('ALL');
     const [editingLeave, setEditingLeave] = useState(null);
     const [search, setSearch] = useState('');
@@ -20,17 +19,16 @@ export default function LeaveManagement() {
 
     const fetchLeaves = async () => {
         try {
-            if (!API_BASE_URL) return;
+            setLoading(true);
             const token = localStorage.getItem('medora_token');
-            const res = await fetch(`${API_BASE_URL}/api/leaves`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+            const res = await fetch(`${API_BASE_URL}/api/leaves`, { headers });
             if (res.ok) {
                 const data = await res.json();
-                if (Array.isArray(data) && data.length > 0) setLeaves(data);
+                if (Array.isArray(data)) setLeaves(data);
             }
         } catch (error) {
-            console.warn("Using fallback leaves for mobile/cloud:", error);
+            console.error("Failed to fetch leaves from backend:", error);
         } finally {
             setLoading(false);
         }

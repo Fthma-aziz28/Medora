@@ -3,17 +3,16 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AlertTriangle, CheckCircle, XCircle, Activity, UserPlus, FileText, ChevronRight, ArrowLeft } from 'lucide-react';
 import { API_BASE_URL } from '../apiConfig';
-import { DEMO_ANALYSIS } from '../demoData';
 import './Dashboard.css';
 
 export default function EmergencyAllocation() {
     const { leaveId } = useParams();
     const navigate = useNavigate();
     
-    const [analyses, setAnalyses] = useState(DEMO_ANALYSIS);
+    const [analyses, setAnalyses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentSlotIndex, setCurrentSlotIndex] = useState(0);
-    const [simulatedDoctor, setSimulatedDoctor] = useState(DEMO_ANALYSIS[0]?.candidates?.[0] || null);
+    const [simulatedDoctor, setSimulatedDoctor] = useState(null);
     const [overrideReason, setOverrideReason] = useState('');
     const [showOverrideDialog, setShowOverrideDialog] = useState(false);
 
@@ -24,11 +23,6 @@ export default function EmergencyAllocation() {
     const fetchAnalysis = async () => {
         try {
             setLoading(true);
-            if (!API_BASE_URL) {
-                setAnalyses(DEMO_ANALYSIS);
-                setSimulatedDoctor(DEMO_ANALYSIS[0]?.candidates?.[0] || null);
-                return;
-            }
             const token = localStorage.getItem('medora_token');
             const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
@@ -43,18 +37,18 @@ export default function EmergencyAllocation() {
                         setSimulatedDoctor(null);
                     }
                 } else {
-                    setAnalyses(DEMO_ANALYSIS);
-                    setSimulatedDoctor(DEMO_ANALYSIS[0]?.candidates?.[0] || null);
+                    setAnalyses([]);
+                    setSimulatedDoctor(null);
                 }
             } else {
-                console.warn("Backend returned non-OK status, falling back to demo analysis");
-                setAnalyses(DEMO_ANALYSIS);
-                setSimulatedDoctor(DEMO_ANALYSIS[0]?.candidates?.[0] || null);
+                console.error("Backend returned error status for emergency analysis:", res.status);
+                setAnalyses([]);
+                setSimulatedDoctor(null);
             }
         } catch (error) {
-            console.warn("Using fallback demo analysis for emergency allocation:", error);
-            setAnalyses(DEMO_ANALYSIS);
-            setSimulatedDoctor(DEMO_ANALYSIS[0]?.candidates?.[0] || null);
+            console.error("Failed to fetch emergency analysis:", error);
+            setAnalyses([]);
+            setSimulatedDoctor(null);
         } finally {
             setLoading(false);
         }

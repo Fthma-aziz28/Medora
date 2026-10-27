@@ -2,84 +2,53 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Calendar, Download, Clock, Plus } from 'lucide-react';
+import { FileText, Calendar, Download, Clock, Plus, AlertCircle } from 'lucide-react';
 import AddAppointmentModal from '../components/AddAppointmentModal';
 import { API_BASE_URL } from '../apiConfig';
 import './Dashboard.css';
 
-const DEMO_PATIENT_DOCUMENTS = [
-    {
-        id: 1,
-        title: 'Comprehensive Metabolic Panel (CMP)',
-        documentType: 'TEST_RESULT',
-        description: 'Routine blood panel shows electrolytes and liver enzymes within normal parameters.',
-        createdAt: new Date().toISOString(),
-        fileUrl: ''
-    },
-    {
-        id: 2,
-        title: 'Prescription: Lisinopril 10mg',
-        documentType: 'PRESCRIPTION',
-        description: 'Take 1 tablet daily every morning with water. 90-day refill authorized by Dr. Aisha Rahman.',
-        createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-        fileUrl: ''
-    },
-    {
-        id: 3,
-        title: 'Cardiology Consultation & ECG Report',
-        documentType: 'TEST_RESULT',
-        description: 'Normal sinus rhythm, heart rate 72 bpm. Follow-up scheduled in 6 months.',
-        createdAt: new Date(Date.now() - 86400000 * 14).toISOString(),
-        fileUrl: ''
-    }
-];
-
 export default function PatientDashboard() {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [documents, setDocuments] = useState(DEMO_PATIENT_DOCUMENTS);
+    const [documents, setDocuments] = useState([]);
     const [isBookingOpen, setIsBookingOpen] = useState(false);
     const [patientAppointments, setPatientAppointments] = useState([]);
+    const [downloadingId, setDownloadingId] = useState(null);
     const [nextVisit, setNextVisit] = useState({
         time: 'Loading...',
         detail: 'Fetching clinical schedule...'
     });
 
-    const patientName = user?.name || 'Emily Chen';
-    const patientEmail = user?.email || 'emily@medora.com';
+    const patientName = user?.name || 'Patient';
+    const patientEmail = user?.email || '';
 
     const fetchPatientData = async () => {
         const token = localStorage.getItem('medora_token');
         const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
-        // 1. Fetch patient documents
-        if (patientEmail && API_BASE_URL) {
+        // 1. Fetch patient documents (backend automatically scopes to authenticated patient)
+        if (API_BASE_URL) {
             try {
-                const res = await fetch(`${API_BASE_URL}/api/documents?patientEmail=${encodeURIComponent(patientEmail)}`, { headers });
+                const res = await fetch(`${API_BASE_URL}/api/documents`, { headers });
                 if (res.ok) {
                     const data = await res.json();
-                    if (Array.isArray(data) && data.length > 0) setDocuments(data);
+                    if (Array.isArray(data)) setDocuments(data);
                 }
             } catch (err) {
-                console.warn("Using demo documents fallback for patient:", err);
+                console.warn("Patient documents fetch error:", err);
             }
         }
 
-        // 2. Fetch patient appointments
+        // 2. Fetch patient appointments (backend automatically scopes to authenticated patient)
         if (API_BASE_URL) {
             try {
                 const apptRes = await fetch(`${API_BASE_URL}/api/appointments`, { headers });
                 if (apptRes.ok) {
-                    const allAppts = await apptRes.json();
-                    if (Array.isArray(allAppts)) {
-                        const myAppts = allAppts.filter(a => {
-                            const pName = (a.patientName || '').toLowerCase();
-                            return pName.includes(patientName.toLowerCase()) || pName.includes('emily');
-                        });
+                    const myAppts = await apptRes.json();
+                    if (Array.isArray(myAppts)) {
                         setPatientAppointments(myAppts);
 
                         if (myAppts.length > 0) {
-                            // Find next upcoming
                             const sorted = [...myAppts].sort((a, b) => 
                                 (a.appointmentDate || '').localeCompare(b.appointmentDate || '')
                             );
@@ -87,7 +56,7 @@ export default function PatientDashboard() {
                             const timeStr = next.startTime ? next.startTime.substring(0, 5) : '09:00';
                             setNextVisit({
                                 time: `${next.appointmentDate} · ${timeStr}`,
-                                detail: `With ${next.doctorName || 'Dr. Aisha Rahman'} · Status: ${next.status || 'Confirmed'}`
+                                detail: `With ${next.doctorName || 'Attending Physician'} · Status: ${next.status || 'Confirmed'}`
                             });
                         } else {
                             setNextVisit({
@@ -98,10 +67,10 @@ export default function PatientDashboard() {
                     }
                 }
             } catch (err) {
-                console.warn("Using fallback appointments for patient:", err);
+                console.warn("Patient appointments fetch error:", err);
                 setNextVisit({
-                    time: 'Today 09:00',
-                    detail: 'Dr. Aisha Rahman · Cardiology Room 302'
+                    time: 'None Scheduled',
+                    detail: 'Book a consultation slot above to schedule a visit'
                 });
             }
         }
@@ -112,10 +81,41 @@ export default function PatientDashboard() {
 
         const handleSync = () => fetchPatientData();
         window.addEventListener('medora_appointment_updated', handleSync);
-        return () => window.removeEventListener('medora_appointment_updated', handleSync);
+        window.addEventListener('medora_document_updated', handleSync);
+        return () => {
+            window.removeEventListener('medora_appointment_updated', handleSync);
+            window.removeEventListener('medora_document_updated', handleSync);
+        };
     }, [patientEmail, patientName]);
 
-    const prescriptionCount = documents.filter(d => d.documentType === 'PRESCRIPTION').length || 1;
+    const prescriptions = documents.filter(d => (d.documentType || '').toUpperCase() === 'PRESCRIPTION');
+    const prescriptionCount = prescriptions.length;
+
+    const handleDownload = async (doc) => {
+        setDownloadingId(doc.id);
+        try {
+            const token = localStorage.getItem('medora_token');
+            const res = await fetch(`${API_BASE_URL}/api/documents/${doc.id}/download`, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+            if (!res.ok) {
+                throw new Error("Unable to download document from repository.");
+            }
+            const blob = await res.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = doc.fileName || `${(doc.title || 'document').replace(/[^a-zA-Z0-9.-]/g, '_')}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(downloadUrl);
+            document.body.removeChild(a);
+        } catch (err) {
+            alert("Download failed: " + err.message);
+        } finally {
+            setDownloadingId(null);
+        }
+    };
 
     const handleAppointmentBooked = (newAppt) => {
         if (newAppt) {
@@ -174,71 +174,90 @@ export default function PatientDashboard() {
                 <div className="metric-strip-item">
                     <span className="metric-label">Active Prescriptions</span>
                     <div className="metric-value">{prescriptionCount}</div>
-                    <span className="metric-subtext">Lisinopril 10mg (90-day supply active)</span>
+                    <span className="metric-subtext">
+                        {prescriptionCount > 0 
+                            ? `${prescriptions[0].title} on file`
+                            : 'No active prescriptions recorded'}
+                    </span>
                 </div>
 
                 <div className="metric-strip-item">
                     <span className="metric-label">Clinical Records on File</span>
                     <div className="metric-value">{documents.length}</div>
-                    <span className="metric-subtext">All verified by attending physicians</span>
+                    <span className="metric-subtext">
+                        {documents.length > 0 ? 'Verified by attending clinical staff' : 'No records uploaded yet'}
+                    </span>
                 </div>
             </section>
 
             {/* Live Scheduled Appointments Section */}
-            {patientAppointments.length > 0 && (
-                <section className="editorial-table-container" style={{ marginBottom: '2rem' }}>
-                    <div className="editorial-table-header">
-                        <div>
-                            <h2>Your Active Clinical Appointments</h2>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                Confirmed outpatient slots synchronized across physician rosters
-                            </span>
-                        </div>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-4)', background: 'var(--color-6)', padding: '0.2rem 0.5rem', borderRadius: 3 }}>
-                            {patientAppointments.length} Scheduled
+            <section className="editorial-table-container" style={{ marginBottom: '2rem' }}>
+                <div className="editorial-table-header">
+                    <div>
+                        <h2>Your Active Clinical Appointments</h2>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                            Confirmed outpatient slots synchronized across physician rosters
                         </span>
                     </div>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-4)', background: 'var(--color-6)', padding: '0.2rem 0.5rem', borderRadius: 3 }}>
+                        {patientAppointments.length} Scheduled
+                    </span>
+                </div>
 
-                    <div className="editorial-row editorial-row-header">
-                        <div>Attending Physician</div>
-                        <div>Date & Scheduled Time</div>
-                        <div>Consultation Type</div>
-                        <div>Status</div>
-                        <div style={{ textAlign: 'right' }}>Actions</div>
+                {patientAppointments.length === 0 ? (
+                    <div style={{ padding: '3rem 1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                        <p style={{ margin: 0, fontWeight: 500 }}>You have no scheduled clinical appointments.</p>
+                        <button 
+                            className="btn-primary-action" 
+                            style={{ margin: '1rem auto 0' }}
+                            onClick={() => setIsBookingOpen(true)}
+                        >
+                            <Plus size={14} /> Schedule an Outpatient Consultation
+                        </button>
                     </div>
+                ) : (
+                    <>
+                        <div className="editorial-row editorial-row-header">
+                            <div>Attending Physician</div>
+                            <div>Date & Scheduled Time</div>
+                            <div>Consultation Type</div>
+                            <div>Status</div>
+                            <div style={{ textAlign: 'right' }}>Actions</div>
+                        </div>
 
-                    {patientAppointments.map(a => (
-                        <div key={a.id} className="editorial-row">
-                            <div>
-                                <div style={{ fontWeight: 600, color: 'var(--color-1)', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                                    <Clock size={15} color="var(--color-4)" />
-                                    <span>{a.doctorName || `Dr. #${a.doctorId}`}</span>
+                        {patientAppointments.map(a => (
+                            <div key={a.id} className="editorial-row">
+                                <div>
+                                    <div style={{ fontWeight: 600, color: 'var(--color-1)', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                                        <Clock size={15} color="var(--color-4)" />
+                                        <span>{a.doctorName || `Dr. #${a.doctorId}`}</span>
+                                    </div>
+                                </div>
+                                <div style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>
+                                    {a.appointmentDate} · {a.startTime?.substring(0, 5)} - {a.endTime?.substring(0, 5)}
+                                </div>
+                                <div style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
+                                    {a.isEmergencyReplacement ? 'Emergency Physician Reassignment' : 'Outpatient Clinical Consultation'}
+                                </div>
+                                <div>
+                                    <span className="status-indicator-dot confirmed">
+                                        <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'var(--color-4)' }} />
+                                        {a.status || 'Confirmed'}
+                                    </span>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <button 
+                                        className="row-action-btn edit"
+                                        onClick={() => navigate('/app/appointments')}
+                                    >
+                                        <span>Manage</span>
+                                    </button>
                                 </div>
                             </div>
-                            <div style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>
-                                {a.appointmentDate} · {a.startTime?.substring(0, 5)} - {a.endTime?.substring(0, 5)}
-                            </div>
-                            <div style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
-                                Outpatient Clinical Consultation
-                            </div>
-                            <div>
-                                <span className="status-indicator-dot confirmed">
-                                    <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'var(--color-4)' }} />
-                                    {a.status || 'Confirmed'}
-                                </span>
-                            </div>
-                            <div style={{ textAlign: 'right' }}>
-                                <button 
-                                    className="row-action-btn edit"
-                                    onClick={() => navigate('/app/appointments')}
-                                >
-                                    <span>Manage</span>
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                </section>
-            )}
+                        ))}
+                    </>
+                )}
+            </section>
 
             {/* Medical Records Table */}
             <section className="editorial-table-container">
@@ -249,50 +268,71 @@ export default function PatientDashboard() {
                             Official clinical documents, lab findings, and pharmacy authorizations
                         </span>
                     </div>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-4)', background: 'var(--color-6)', padding: '0.2rem 0.5rem', borderRadius: 3 }}>
+                        {documents.length} Records
+                    </span>
                 </div>
 
-                <div className="editorial-row editorial-row-header">
-                    <div>Document Name</div>
-                    <div>Category</div>
-                    <div>Clinical Summary</div>
-                    <div>Date</div>
-                    <div style={{ textAlign: 'right' }}>Action</div>
-                </div>
-
-                {documents.map(doc => (
-                    <div key={doc.id} className="editorial-row">
-                        <div>
-                            <div style={{ fontWeight: 600, color: 'var(--color-1)', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                                <FileText size={16} color="var(--color-4)" />
-                                <span>{doc.title}</span>
-                            </div>
-                        </div>
-
-                        <div>
-                            <span style={{ fontSize: '0.72rem', padding: '0.2rem 0.5rem', background: 'var(--color-6)', color: 'var(--color-4)', borderRadius: '3px', fontWeight: 600, textTransform: 'uppercase' }}>
-                                {doc.documentType.replace('_', ' ')}
-                            </span>
-                        </div>
-
-                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
-                            {doc.description}
-                        </div>
-
-                        <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                            {new Date(doc.createdAt).toLocaleDateString()}
-                        </div>
-
-                        <div style={{ textAlign: 'right' }}>
-                            <button 
-                                className="row-action-btn edit"
-                                onClick={() => alert(`Downloading ${doc.title}...`)}
-                            >
-                                <Download size={13} />
-                                <span>Download</span>
-                            </button>
-                        </div>
+                {documents.length === 0 ? (
+                    <div style={{ padding: '3rem 1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                        <FileText size={32} color="var(--color-4)" style={{ margin: '0 auto 0.75rem auto', opacity: 0.7 }} />
+                        <p style={{ margin: 0, fontWeight: 500 }}>No medical records or diagnostic reports on file for your account.</p>
+                        <p style={{ margin: '0.35rem 0 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                            When clinical documents or prescriptions are issued by attending physicians, they will be securely accessible here.
+                        </p>
                     </div>
-                ))}
+                ) : (
+                    <>
+                        <div className="editorial-row editorial-row-header">
+                            <div>Document Name</div>
+                            <div>Category</div>
+                            <div>Clinical Summary</div>
+                            <div>Date</div>
+                            <div style={{ textAlign: 'right' }}>Action</div>
+                        </div>
+
+                        {documents.map(doc => (
+                            <div key={doc.id} className="editorial-row">
+                                <div>
+                                    <div style={{ fontWeight: 600, color: 'var(--color-1)', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                                        <FileText size={16} color="var(--color-4)" />
+                                        <span>{doc.title}</span>
+                                    </div>
+                                    {doc.fileName && (
+                                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginLeft: '1.45rem' }}>
+                                            {doc.fileName}
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <span style={{ fontSize: '0.72rem', padding: '0.2rem 0.5rem', background: 'var(--color-6)', color: 'var(--color-4)', borderRadius: '3px', fontWeight: 600, textTransform: 'uppercase' }}>
+                                        {(doc.documentType || 'DOCUMENT').replace('_', ' ')}
+                                    </span>
+                                </div>
+
+                                <div style={{ color: 'var(--text-secondary)', fontSize: '0.82rem' }}>
+                                    {doc.description || 'Clinical document issued by attending physician.'}
+                                </div>
+
+                                <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                                    {doc.createdAt ? new Date(doc.createdAt).toLocaleDateString() : 'Recent'}
+                                </div>
+
+                                <div style={{ textAlign: 'right' }}>
+                                    <button 
+                                        className="row-action-btn edit"
+                                        onClick={() => handleDownload(doc)}
+                                        disabled={downloadingId === doc.id}
+                                    >
+                                        <Download size={13} />
+                                        <span>{downloadingId === doc.id ? 'Downloading...' : 'Download'}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </>
+                )}
             </section>
 
             <AddAppointmentModal 

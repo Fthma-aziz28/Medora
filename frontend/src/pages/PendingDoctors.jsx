@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Check, X, ShieldAlert, UserCheck, AlertCircle, Clock, Stethoscope } from 'lucide-react';
 import { API_BASE_URL } from '../apiConfig';
-import { DEMO_DOCTORS } from '../demoData';
 
 export default function PendingDoctors({ onDoctorVerified }) {
-    const defaultPending = DEMO_DOCTORS.filter(d => d.status === 'PENDING_VERIFICATION');
-    const [doctors, setDoctors] = useState(defaultPending);
-    const [loading, setLoading] = useState(false);
+    const [doctors, setDoctors] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [actionMsg, setActionMsg] = useState('');
 
     useEffect(() => {
@@ -15,11 +13,10 @@ export default function PendingDoctors({ onDoctorVerified }) {
 
     const fetchDoctors = async () => {
         try {
-            if (!API_BASE_URL) return;
+            setLoading(true);
             const token = localStorage.getItem('medora_token');
-            const res = await fetch(`${API_BASE_URL}/api/doctors`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+            const res = await fetch(`${API_BASE_URL}/api/doctors`, { headers });
             if (res.ok) {
                 const data = await res.json();
                 if (Array.isArray(data)) {
@@ -27,7 +24,7 @@ export default function PendingDoctors({ onDoctorVerified }) {
                 }
             }
         } catch (err) {
-            console.warn("Using fallback pending doctors for mobile/cloud:", err);
+            console.error("Failed to fetch pending doctors from backend:", err);
         } finally {
             setLoading(false);
         }

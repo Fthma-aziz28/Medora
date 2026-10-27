@@ -111,7 +111,9 @@
     color: var(--text-secondary);
 }
 
-.modal-input-group input {
+.modal-input-group input,
+.modal-input-group select,
+.modal-input-group textarea {
     background: #FAF9F5;
     border: 1px solid var(--border-subtle);
     border-radius: 4px;
@@ -121,9 +123,24 @@
     color: var(--color-1);
     outline: none;
     transition: border-color 0.15s ease, background 0.15s ease;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.modal-input-group input:focus {
+.modal-input-group select {
+    cursor: pointer;
+    appearance: auto;
+}
+
+.modal-input-group textarea {
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.5;
+}
+
+.modal-input-group input:focus,
+.modal-input-group select:focus,
+.modal-input-group textarea:focus {
     background: #FFFFFF;
     border-color: var(--color-1);
     box-shadow: 0 0 0 2px rgba(5, 31, 32, 0.08);

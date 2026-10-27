@@ -73,7 +73,7 @@ export function AuthProvider({ children }) {
             }
         }
 
-        // 2. Fallback for Vercel Cloud / Mobile Deployment:
+        // 2. Fallback for Static Preview / Standalone Client Deployment:
         let role = 'ADMIN';
         let name = 'Dr. Admin';
 

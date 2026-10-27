@@ -22,8 +22,13 @@ export default function EditAppointmentModal({ isOpen, onClose, appt, onUpdated 
 
     if (!isOpen || !appt) return null;
 
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errorMsg, setErrorMsg] = useState('');
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
+        setErrorMsg('');
         try {
             const token = localStorage.getItem('medora_token');
             const response = await fetch(`${API_BASE_URL}/api/appointments/${appt.id}`, {
@@ -38,14 +43,14 @@ export default function EditAppointmentModal({ isOpen, onClose, appt, onUpdated 
                 if (onUpdated) onUpdated();
                 onClose();
             } else {
-                console.warn("Backend rejected appointment update, applying optimistic demo update");
-                if (onUpdated) onUpdated();
-                onClose();
+                const text = await response.text();
+                setErrorMsg(text || "Failed to update appointment record.");
             }
         } catch (err) {
-            console.warn("Network error updating appointment, applying optimistic demo update:", err);
-            if (onUpdated) onUpdated();
-            onClose();
+            console.error("Network error updating appointment:", err);
+            setErrorMsg("Network error connecting to scheduling service.");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -131,6 +136,20 @@ export default function EditAppointmentModal({ isOpen, onClose, appt, onUpdated 
                                 </div>
                             </div>
                         </div>
+
+                        {errorMsg && (
+                            <div style={{
+                                padding: '0.65rem 1rem',
+                                margin: '0 1.5rem 1rem 1.5rem',
+                                background: 'rgba(197, 48, 48, 0.08)',
+                                border: '1px solid rgba(197, 48, 48, 0.25)',
+                                borderRadius: '4px',
+                                color: '#C53030',
+                                fontSize: '0.85rem'
+                            }}>
+                                {errorMsg}
+                            </div>
+                        )}
 
                         {/* Footer */}
                         <div className="doctor-modal-footer">

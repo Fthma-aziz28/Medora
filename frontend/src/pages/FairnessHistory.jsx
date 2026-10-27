@@ -6,8 +6,8 @@ import { DEMO_FAIRNESS_HISTORY } from '../demoData';
 import './Dashboard.css';
 
 export default function FairnessHistory() {
-    const [history, setHistory] = useState(DEMO_FAIRNESS_HISTORY);
-    const [loading, setLoading] = useState(false);
+    const [history, setHistory] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         fetchHistory();
@@ -15,17 +15,20 @@ export default function FairnessHistory() {
 
     const fetchHistory = async () => {
         try {
-            if (!API_BASE_URL) return;
+            if (!API_BASE_URL) {
+                setLoading(false);
+                return;
+            }
             const token = localStorage.getItem('medora_token');
             const res = await fetch(`${API_BASE_URL}/api/emergency/history`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
             });
             if (res.ok) {
                 const data = await res.json();
-                if (Array.isArray(data) && data.length > 0) setHistory(data);
+                if (Array.isArray(data)) setHistory(data);
             }
         } catch (error) {
-            console.warn("Using fallback fairness history for mobile/cloud:", error);
+            console.warn("Fairness history fetch error:", error);
         } finally {
             setLoading(false);
         }

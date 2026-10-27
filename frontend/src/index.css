@@ -26,6 +26,40 @@
     --text-muted: #5C7772;
     --font-heading: 'Playfair Display', Georgia, serif;
     --font-ui: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+
+    /* Legacy alias — referenced by chart components */
+    --primary-color: #235347;
+}
+
+/* ==========================================================================
+   GLOBAL UTILITY: action-btn (used in LeaveApplication form submit)
+   ========================================================================== */
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    background-color: var(--color-1);
+    color: #FAF9F5;
+    padding: 0.7rem 1.35rem;
+    border-radius: 6px;
+    border: 1px solid var(--color-1);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    width: 100%;
+}
+
+.action-btn:hover {
+    background-color: var(--color-2);
+    border-color: var(--color-2);
+}
+
+.action-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
 }
 
 html {

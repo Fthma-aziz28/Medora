@@ -1,6 +1,7 @@
 package com.medora.model;
 
 public class DoctorImportRecord {
+    private String doctorId;
     private String fullName;
     private String email;
     private String phone;
@@ -13,6 +14,8 @@ public class DoctorImportRecord {
     private String endTime;
 
     // Getters and setters
+    public String getDoctorId() { return doctorId; }
+    public void setDoctorId(String doctorId) { this.doctorId = doctorId; }
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
 

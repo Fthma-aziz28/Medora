@@ -93,7 +93,7 @@ public class EmergencyAllocationController {
             boolean stillEligible = freshCandidates.stream()
                     .anyMatch(c -> c.getDoctorId().equals(allocation.getReplacementDoctorId()));
 
-            if (!stillEligible) {
+            if (!stillEligible && (allocation.getOverrideFlag() == null || !allocation.getOverrideFlag())) {
                 return ResponseEntity.status(409)
                         .body("Doctor availability has changed. Please review updated candidates.");
             }
@@ -102,7 +102,15 @@ public class EmergencyAllocationController {
             targetAppt.setIsEmergencyReplacement(true);
             appointmentDao.updateAppointment(targetAppt.getId(), targetAppt);
         }
-        // Even if no conflicting appointment found, record the allocation
+
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof User) {
+            allocation.setAdminId(((User) auth.getPrincipal()).getId());
+        } else if (allocation.getAdminId() == null) {
+            allocation.setAdminId(1L);
+        }
+
+        // Record the allocation in the persistent ledger
         emergencyAllocationDao.save(allocation);
         return ResponseEntity.ok(Map.of("message", "Emergency allocation confirmed successfully."));
     }

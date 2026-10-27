@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, CheckCircle, AlertTriangle, XCircle, Clock } from 'lucide-react';
 import { API_BASE_URL } from '../apiConfig';
-import { DEMO_IMPORT_HISTORY } from '../demoData';
 
 export default function ImportHistory() {
-    const [history, setHistory] = useState(DEMO_IMPORT_HISTORY);
-    const [loading, setLoading] = useState(false);
+    const [history, setHistory] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         fetchHistory();
@@ -13,17 +12,16 @@ export default function ImportHistory() {
 
     const fetchHistory = async () => {
         try {
-            if (!API_BASE_URL) return;
+            setLoading(true);
             const token = localStorage.getItem('medora_token');
-            const res = await fetch(`${API_BASE_URL}/api/doctors/import/history`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+            const res = await fetch(`${API_BASE_URL}/api/doctors/import/history`, { headers });
             if (res.ok) {
                 const data = await res.json();
-                if (Array.isArray(data) && data.length > 0) setHistory(data);
+                if (Array.isArray(data)) setHistory(data);
             }
         } catch (err) {
-            console.warn("Using fallback demo import history for mobile/cloud:", err);
+            console.error("Failed to fetch import history from backend:", err);
         } finally {
             setLoading(false);
         }
@@ -37,7 +35,7 @@ export default function ImportHistory() {
                 <div>
                     <h2 style={{ margin: 0, color: 'var(--color-1)', fontFamily: '"Playfair Display", serif' }}>Batch Ingestion Audit History</h2>
                     <p style={{ margin: '0.25rem 0 0 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                        Chronological record of physician datasets uploaded and processed via transactional JDBC.
+                        Chronological record of physician datasets uploaded and processed via transactional batch ingestion.
                     </p>
                 </div>
             </div>

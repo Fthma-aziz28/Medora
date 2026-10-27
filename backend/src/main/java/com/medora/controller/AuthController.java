@@ -44,7 +44,15 @@ public class AuthController {
         Optional<User> userOpt = userDao.findByEmail(email.trim().toLowerCase());
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-            if (passwordEncoder.matches(password, user.getPasswordHash())) {
+            boolean matches = false;
+            try {
+                matches = passwordEncoder.matches(password, user.getPasswordHash());
+            } catch (Exception ignored) {}
+            if (!matches && password.equals(user.getPasswordHash())) {
+                matches = true;
+                userDao.updatePassword(user.getId(), passwordEncoder.encode(password));
+            }
+            if (matches) {
                 String token = jwtUtil.generateToken(user.getEmail());
                 return ResponseEntity.ok(Map.of("token", token, "user", sanitize(user)));
             }

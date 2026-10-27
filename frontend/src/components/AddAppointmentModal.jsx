@@ -3,44 +3,46 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, CalendarPlus, Check, User } from 'lucide-react';
 import { API_BASE_URL } from '../apiConfig';
 import { useAuth } from '../context/AuthContext';
-import { DEMO_DOCTORS } from '../demoData';
 import './AddDoctorModal.css';
 
 export default function AddAppointmentModal({ isOpen, onClose, onUpdated }) {
     const { user } = useAuth();
-    const [doctors, setDoctors] = useState(DEMO_DOCTORS);
+    const [doctors, setDoctors] = useState([]);
     const [formData, setFormData] = useState({
         doctorId: 1,
-        doctorName: 'Dr. Aisha Rahman',
-        patientName: user?.name || 'Emily Chen',
+        doctorName: '',
+        patientName: user?.name || '',
         appointmentDate: new Date().toISOString().split('T')[0],
         startTime: '09:00',
         endTime: '09:30',
         status: 'Confirmed'
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errorMsg, setErrorMsg] = useState('');
+    const [successMsg, setSuccessMsg] = useState('');
 
     useEffect(() => {
         if (user?.name) {
             setFormData(prev => ({ ...prev, patientName: user.name }));
         }
         
-        // Fetch live doctors if available
-        if (API_BASE_URL) {
-            fetch(`${API_BASE_URL}/api/doctors`)
-                .then(res => res.json())
-                .then(data => {
-                    if (Array.isArray(data) && data.length > 0) {
-                        setDoctors(data);
-                        setFormData(prev => ({
-                            ...prev,
-                            doctorId: data[0].id,
-                            doctorName: data[0].name || `Dr. #${data[0].id}`
-                        }));
-                    }
-                })
-                .catch(() => {});
-        }
+        // Fetch live doctors
+        const token = localStorage.getItem('medora_token');
+        fetch(`${API_BASE_URL}/api/doctors`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data) && data.length > 0) {
+                    setDoctors(data);
+                    setFormData(prev => ({
+                        ...prev,
+                        doctorId: data[0].id,
+                        doctorName: data[0].name || `Dr. #${data[0].id}`
+                    }));
+                }
+            })
+            .catch(err => console.error("Error fetching doctors:", err));
     }, [user, isOpen]);
 
     if (!isOpen) return null;
@@ -58,6 +60,7 @@ export default function AddAppointmentModal({ isOpen, onClose, onUpdated }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
+        setErrorMsg('');
         try {
             const token = localStorage.getItem('medora_token');
             const payload = {
@@ -78,36 +81,22 @@ export default function AddAppointmentModal({ isOpen, onClose, onUpdated }) {
                 body: JSON.stringify(payload)
             });
 
-            const newAppt = {
-                id: Date.now(),
-                ...payload,
-                doctorName: formData.doctorName
-            };
-
             if (response.ok) {
-                alert(`Appointment successfully scheduled with ${formData.doctorName}!`);
+                const created = await response.json();
+                setSuccessMsg(`Appointment confirmed with ${formData.doctorName}!`);
                 window.dispatchEvent(new Event('medora_appointment_updated'));
-                if (onUpdated) onUpdated(newAppt);
-                onClose();
+                if (onUpdated) onUpdated(created);
+                setTimeout(() => {
+                    onClose();
+                    setSuccessMsg('');
+                }, 1500);
             } else {
-                console.warn("Backend rejected appointment, applying optimistic demo update");
-                alert(`Appointment successfully scheduled with ${formData.doctorName} (Demo Mode)!`);
-                window.dispatchEvent(new Event('medora_appointment_updated'));
-                if (onUpdated) onUpdated(newAppt);
-                onClose();
+                const errData = await response.text();
+                setErrorMsg(errData || 'Failed to schedule appointment. Please check scheduling constraints.');
             }
         } catch (err) {
-            console.warn("Network error adding appointment, applying optimistic demo update:", err);
-            const newAppt = {
-                id: Date.now(),
-                ...formData,
-                startTime: formData.startTime + ':00',
-                endTime: formData.endTime + ':00'
-            };
-            alert(`Appointment successfully scheduled with ${formData.doctorName} (Demo Mode)!`);
-            window.dispatchEvent(new Event('medora_appointment_updated'));
-            if (onUpdated) onUpdated(newAppt);
-            onClose();
+            console.error("Network error adding appointment:", err);
+            setErrorMsg("Network error communicating with the scheduling backend.");
         } finally {
             setIsSubmitting(false);
         }
@@ -215,6 +204,37 @@ export default function AddAppointmentModal({ isOpen, onClose, onUpdated }) {
                                 </div>
                             </div>
                         </div>
+
+                        {successMsg && (
+                            <div style={{
+                                padding: '0.65rem 1rem',
+                                margin: '0 1.5rem 1rem 1.5rem',
+                                background: 'rgba(35, 83, 71, 0.1)',
+                                border: '1px solid rgba(35, 83, 71, 0.25)',
+                                borderRadius: '4px',
+                                color: 'var(--color-4)',
+                                fontSize: '0.85rem',
+                                fontWeight: 500,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem'
+                            }}>
+                                ✓ {successMsg}
+                            </div>
+                        )}
+                        {errorMsg && (
+                            <div style={{
+                                padding: '0.65rem 1rem',
+                                margin: '0 1.5rem 1rem 1.5rem',
+                                background: 'rgba(197, 48, 48, 0.08)',
+                                border: '1px solid rgba(197, 48, 48, 0.25)',
+                                borderRadius: '4px',
+                                color: '#C53030',
+                                fontSize: '0.85rem'
+                            }}>
+                                {errorMsg}
+                            </div>
+                        )}
 
                         {/* Footer */}
                         <div className="doctor-modal-footer">

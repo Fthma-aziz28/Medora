@@ -5,8 +5,8 @@ import { DEMO_FAIRNESS_HISTORY } from '../demoData';
 import './Dashboard.css';
 
 export default function FairnessAnalytics() {
-    const [history, setHistory] = useState(DEMO_FAIRNESS_HISTORY);
-    const [loading, setLoading] = useState(false);
+    const [history, setHistory] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         fetchHistory();
@@ -14,17 +14,20 @@ export default function FairnessAnalytics() {
 
     const fetchHistory = async () => {
         try {
-            if (!API_BASE_URL) return;
+            if (!API_BASE_URL) {
+                setLoading(false);
+                return;
+            }
             const token = localStorage.getItem('medora_token');
             const res = await fetch(`${API_BASE_URL}/api/emergency/history`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
             });
             if (res.ok) {
                 const data = await res.json();
-                if (Array.isArray(data) && data.length > 0) setHistory(data);
+                if (Array.isArray(data)) setHistory(data);
             }
         } catch (error) {
-            console.warn("Using fallback fairness analytics for mobile/cloud:", error);
+            console.warn("Fairness analytics fetch error:", error);
         } finally {
             setLoading(false);
         }
@@ -53,9 +56,11 @@ export default function FairnessAnalytics() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
         >
-            <header className="page-header">
-                <h1 style={{ fontFamily: '"Playfair Display", serif' }}>Fairness Analytics</h1>
-                <p>Monitor emergency workload distribution and fairness metrics</p>
+            <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                    <h1>Fairness Analytics</h1>
+                    <p>Monitor emergency workload distribution and fairness metrics</p>
+                </div>
             </header>
 
             {history.length === 0 ? (
@@ -64,24 +69,24 @@ export default function FairnessAnalytics() {
                     <p>There are no emergency allocations recorded yet to analyze.</p>
                 </div>
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '2rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
                     
                     {/* Distribution Chart */}
-                    <div className="glass-panel" style={{ padding: '2rem' }}>
-                        <h3 style={{ margin: '0 0 1.5rem 0' }}>Emergency Assignment Distribution</h3>
+                    <div className="editorial-panel">
+                        <h3 style={{ margin: '0 0 1.5rem 0', color: 'var(--color-1)', fontFamily: 'var(--font-heading)' }}>Emergency Assignment Distribution</h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             {sortedReplacements.map(([doc, count]) => (
                                 <div key={doc}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', fontSize: '0.9rem', fontWeight: 'bold' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem', fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-1)' }}>
                                         <span>{doc}</span>
-                                        <span>{count} assignments</span>
+                                        <span style={{ color: 'var(--color-4)' }}>{count} assignment{count !== 1 ? 's' : ''}</span>
                                     </div>
-                                    <div style={{ width: '100%', height: '8px', background: 'rgba(0,0,0,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                                    <div style={{ width: '100%', height: '6px', background: 'var(--border-subtle)', borderRadius: '3px', overflow: 'hidden' }}>
                                         <motion.div 
                                             initial={{ width: 0 }}
                                             animate={{ width: `${(count / maxReplacements) * 100}%` }}
-                                            transition={{ duration: 1 }}
-                                            style={{ height: '100%', background: 'var(--primary-color)' }}
+                                            transition={{ duration: 0.8 }}
+                                            style={{ height: '100%', background: 'var(--color-4)', borderRadius: '3px' }}
                                         />
                                     </div>
                                 </div>
@@ -90,20 +95,20 @@ export default function FairnessAnalytics() {
                     </div>
 
                     {/* Metrics Panel */}
-                    <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                        <h3 style={{ margin: '0 0 1.5rem 0', alignSelf: 'flex-start' }}>System Fairness Trend</h3>
+                    <div className="editorial-panel" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1.5rem' }}>
+                        <h3 style={{ margin: 0, color: 'var(--color-1)', fontFamily: 'var(--font-heading)', alignSelf: 'flex-start' }}>System Fairness Score</h3>
                         
-                        <div style={{ textAlign: 'center', padding: '2rem', border: '2px solid rgba(0,0,0,0.05)', borderRadius: '50%', width: '200px', height: '200px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                            <div style={{ fontSize: '3.5rem', fontWeight: '900', color: '#27ae60', lineHeight: 1 }}>
+                        <div style={{ textAlign: 'center', padding: '2rem', border: '2px solid var(--color-6)', borderRadius: '50%', width: '180px', height: '180px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: 'var(--color-6)' }}>
+                            <div style={{ fontSize: '3rem', fontWeight: '700', color: 'var(--color-4)', lineHeight: 1 }}>
                                 {averageScore}
                             </div>
-                            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 'bold', letterSpacing: '1px', marginTop: '0.5rem' }}>
-                                AVERAGE SCORE
+                            <div style={{ fontSize: '0.72rem', color: 'var(--color-2)', fontWeight: 700, letterSpacing: '1px', marginTop: '0.4rem', textTransform: 'uppercase' }}>
+                                Avg Score
                             </div>
                         </div>
 
-                        <p style={{ marginTop: '2rem', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem', maxWidth: '300px' }}>
-                            This score represents the average fairness of all emergency replacements made in the system. A higher score indicates better workload distribution.
+                        <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem', maxWidth: '280px', margin: 0, lineHeight: 1.6 }}>
+                            Higher score = better workload distribution across the emergency replacement pool.
                         </p>
                     </div>
 

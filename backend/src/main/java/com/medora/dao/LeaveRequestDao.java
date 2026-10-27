@@ -39,6 +39,37 @@ public class LeaveRequestDao {
         return list;
     }
 
+    public List<LeaveRequest> findByDoctorId(Long doctorId) {
+        List<LeaveRequest> list = new ArrayList<>();
+        String sql = "SELECT lr.*, u.name as doctor_name, d.specialty as doctor_specialty " +
+                     "FROM leave_requests lr " +
+                     "LEFT JOIN doctors d ON lr.doctor_id = d.id " +
+                     "LEFT JOIN users u ON d.user_id = u.id " +
+                     "WHERE lr.doctor_id = ? " +
+                     "ORDER BY lr.start_date DESC";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, doctorId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while(rs.next()) {
+                    LeaveRequest lr = new LeaveRequest();
+                    lr.setId(rs.getLong("id"));
+                    lr.setDoctorId(rs.getLong("doctor_id"));
+                    if(rs.getDate("start_date") != null) lr.setStartDate(rs.getDate("start_date").toLocalDate());
+                    if(rs.getDate("end_date") != null) lr.setEndDate(rs.getDate("end_date").toLocalDate());
+                    lr.setReason(rs.getString("reason"));
+                    lr.setStatus(rs.getString("status"));
+                    lr.setDoctorName(rs.getString("doctor_name"));
+                    lr.setDoctorSpecialty(rs.getString("doctor_specialty"));
+                    list.add(lr);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("DB error finding leaves by doctor", e);
+        }
+        return list;
+    }
+
     public void updateStatus(Long id, String status) {
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement("UPDATE leave_requests SET status = ? WHERE id = ?")) {
@@ -76,15 +107,25 @@ public class LeaveRequestDao {
         }
     }
 
-    public void addLeaveRequest(LeaveRequest request) {
+    public Long addLeaveRequest(LeaveRequest request) {
         try (Connection conn = dataSource.getConnection();
-             PreparedStatement ps = conn.prepareStatement("INSERT INTO leave_requests (doctor_id, start_date, end_date, reason, status) VALUES (?, ?, ?, ?, ?)")) {
+             PreparedStatement ps = conn.prepareStatement(
+                 "INSERT INTO leave_requests (doctor_id, start_date, end_date, reason, status) VALUES (?, ?, ?, ?, ?)",
+                 Statement.RETURN_GENERATED_KEYS)) {
             ps.setLong(1, request.getDoctorId());
             ps.setDate(2, request.getStartDate() != null ? Date.valueOf(request.getStartDate()) : null);
             ps.setDate(3, request.getEndDate() != null ? Date.valueOf(request.getEndDate()) : null);
             ps.setString(4, request.getReason());
             ps.setString(5, request.getStatus() != null ? request.getStatus().toUpperCase() : "PENDING");
             ps.executeUpdate();
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    long id = rs.getLong(1);
+                    request.setId(id);
+                    return id;
+                }
+            }
+            return null;
         } catch (SQLException e) {
             throw new RuntimeException("DB error during addLeaveRequest", e);
         }

@@ -33,3 +33,11 @@ Desktop.ini
 # Environment variables
 .env
 .env.local
+
+# Scratch scripts & temporary test files
+test_*.ps1
+test_*.pdf
+query_users.sql
+update_passwords.sql
+backend/uploads/*
+!backend/uploads/.gitkeep

@@ -3,19 +3,19 @@ import { motion } from 'framer-motion';
 import { Calendar, FileText, Send, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../apiConfig';
-import { DEMO_LEAVES } from '../demoData';
 import './Dashboard.css';
 
 export default function LeaveApplication() {
     const { user } = useAuth();
-    const [leaves, setLeaves] = useState(DEMO_LEAVES);
+    const [leaves, setLeaves] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [successMsg, setSuccessMsg] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
     // doctorId holds the doctors-table PK (NOT users.id — they differ)
     const [doctorId, setDoctorId] = useState(null);
     const [formData, setFormData] = useState({
-        doctorName: user?.name || 'Dr. Aisha Rahman',
-        doctorSpecialty: 'Cardiology',
+        doctorName: user?.name || '',
+        doctorSpecialty: '',
         startDate: '',
         endDate: '',
         reason: ''
@@ -23,7 +23,6 @@ export default function LeaveApplication() {
 
     // Resolve this doctor's doctors-table ID from /api/doctors/me
     const fetchDoctorProfile = async () => {
-        if (!API_BASE_URL) return;
         try {
             const token = localStorage.getItem('medora_token');
             const res = await fetch(`${API_BASE_URL}/api/doctors/me`, {
@@ -32,26 +31,35 @@ export default function LeaveApplication() {
             if (res.ok) {
                 const doc = await res.json();
                 // doc.id is the doctors table PK — this is what leave_requests.doctor_id expects
-                if (doc?.id) setDoctorId(doc.id);
+                if (doc?.id) {
+                    setDoctorId(doc.id);
+                    setFormData(prev => ({
+                        ...prev,
+                        doctorName: doc.name || user?.name || '',
+                        doctorSpecialty: doc.specialty || ''
+                    }));
+                }
             }
         } catch (err) {
-            console.warn('Could not fetch doctor profile, using user.id fallback:', err);
+            console.error('Could not fetch doctor profile:', err);
         }
     };
 
     const fetchLeaves = async () => {
         try {
-            if (!API_BASE_URL) return;
+            setLoading(true);
             const token = localStorage.getItem('medora_token');
             const res = await fetch(`${API_BASE_URL}/api/leaves`, {
                 headers: token ? { 'Authorization': `Bearer ${token}` } : {}
             });
             if (res.ok) {
                 const data = await res.json();
-                if (Array.isArray(data) && data.length > 0) setLeaves(data);
+                if (Array.isArray(data)) setLeaves(data);
             }
         } catch (err) {
-            console.warn("Using fallback leaves for mobile/cloud:", err);
+            console.error("Failed to fetch leaves from backend:", err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -70,8 +78,8 @@ export default function LeaveApplication() {
         const newLeave = {
             id: Date.now(),
             doctorId: resolvedDoctorId,
-            doctorName: user?.name || 'Dr. Aisha Rahman',
-            doctorSpecialty: 'Cardiology',
+            doctorName: user?.name || formData.doctorName || 'Unknown Physician',
+            doctorSpecialty: formData.doctorSpecialty || '',
             startDate: formData.startDate,
             endDate: formData.endDate,
             reason: formData.reason,

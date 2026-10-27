@@ -81,12 +81,16 @@ public class DoctorDao {
                 try (PreparedStatement psDoc = conn.prepareStatement(
                         "INSERT INTO doctors (user_id, department_id, specialty, working_days, start_time, end_time, slot_mins) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
                     psDoc.setLong(1, userId);
-                    psDoc.setLong(2, dto.getDepartmentId());
+                    if (dto.getDepartmentId() != null && dto.getDepartmentId() > 0) {
+                        psDoc.setLong(2, dto.getDepartmentId());
+                    } else {
+                        psDoc.setNull(2, Types.BIGINT);
+                    }
                     psDoc.setString(3, dto.getSpecialty());
                     psDoc.setString(4, dto.getWorkingDays());
                     psDoc.setString(5, dto.getStartTime());
                     psDoc.setString(6, dto.getEndTime());
-                    psDoc.setInt(7, dto.getSlotMins());
+                    psDoc.setInt(7, dto.getSlotMins() != null ? dto.getSlotMins() : 20);
                     psDoc.executeUpdate();
                 }
 
@@ -106,12 +110,16 @@ public class DoctorDao {
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement psDoc = conn.prepareStatement(
                     "UPDATE doctors SET department_id = ?, specialty = ?, working_days = ?, start_time = ?, end_time = ?, slot_mins = ? WHERE id = ?")) {
-                psDoc.setLong(1, dto.getDepartmentId());
+                if (dto.getDepartmentId() != null && dto.getDepartmentId() > 0) {
+                    psDoc.setLong(1, dto.getDepartmentId());
+                } else {
+                    psDoc.setNull(1, Types.BIGINT);
+                }
                 psDoc.setString(2, dto.getSpecialty());
                 psDoc.setString(3, dto.getWorkingDays());
                 psDoc.setString(4, dto.getStartTime());
                 psDoc.setString(5, dto.getEndTime());
-                psDoc.setInt(6, dto.getSlotMins());
+                psDoc.setInt(6, dto.getSlotMins() != null ? dto.getSlotMins() : 20);
                 psDoc.setLong(7, id);
                 psDoc.executeUpdate();
             }
@@ -134,8 +142,13 @@ public class DoctorDao {
 
     public List<Doctor> findByDepartmentId(Long departmentId) {
         List<Doctor> list = new ArrayList<>();
+        String sql = "SELECT d.*, u.name, u.email, u.status, dep.name as department_name " +
+                     "FROM doctors d " +
+                     "LEFT JOIN users u ON d.user_id = u.id " +
+                     "LEFT JOIN departments dep ON d.department_id = dep.id " +
+                     "WHERE d.department_id = ?";
         try (Connection conn = dataSource.getConnection();
-             PreparedStatement ps = conn.prepareStatement("SELECT * FROM doctors WHERE department_id = ?")) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, departmentId);
             try (ResultSet rs = ps.executeQuery()) {
                 while(rs.next()) {
@@ -148,6 +161,10 @@ public class DoctorDao {
                     d.setStartTime(rs.getString("start_time"));
                     d.setEndTime(rs.getString("end_time"));
                     d.setSlotMins(rs.getInt("slot_mins"));
+                    d.setName(rs.getString("name"));
+                    d.setEmail(rs.getString("email"));
+                    d.setStatus(rs.getString("status"));
+                    d.setDepartmentName(rs.getString("department_name"));
                     list.add(d);
                 }
             }
@@ -158,8 +175,13 @@ public class DoctorDao {
     }
 
     public Doctor findById(Long id) {
+        String sql = "SELECT d.*, u.name, u.email, u.status, dep.name as department_name " +
+                     "FROM doctors d " +
+                     "LEFT JOIN users u ON d.user_id = u.id " +
+                     "LEFT JOIN departments dep ON d.department_id = dep.id " +
+                     "WHERE d.id = ?";
         try (Connection conn = dataSource.getConnection();
-             PreparedStatement ps = conn.prepareStatement("SELECT * FROM doctors WHERE id = ?")) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -172,6 +194,10 @@ public class DoctorDao {
                     d.setStartTime(rs.getString("start_time"));
                     d.setEndTime(rs.getString("end_time"));
                     d.setSlotMins(rs.getInt("slot_mins"));
+                    d.setName(rs.getString("name"));
+                    d.setEmail(rs.getString("email"));
+                    d.setStatus(rs.getString("status"));
+                    d.setDepartmentName(rs.getString("department_name"));
                     return d;
                 }
             }

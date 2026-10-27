@@ -1,38 +1,42 @@
 import React, { useEffect, useState } from 'react';
-import { Pencil, Trash2, Plus, Calendar, CheckCircle } from 'lucide-react';
+import { Pencil, Trash2, Plus, Calendar, Clock, AlertCircle } from 'lucide-react';
 import EditAppointmentModal from '../components/EditAppointmentModal';
 import AddAppointmentModal from '../components/AddAppointmentModal';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../apiConfig';
-import { DEMO_APPOINTMENTS } from '../demoData';
 import './Roster.css';
 
 export default function Appointments() {
-    const [appointments, setAppointments] = useState(DEMO_APPOINTMENTS);
+    const [appointments, setAppointments] = useState([]);
     const [editingAppt, setEditingAppt] = useState(null);
     const [isAddOpen, setIsAddOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
     const { user } = useAuth();
     const isPatient = user?.role === 'PATIENT';
+    const isDoctor = user?.role === 'DOCTOR';
 
-    const maskName = (name) => {
-        if (!name) return '';
-        if (isPatient && (name.toLowerCase().includes('emily') || (user?.name && name.toLowerCase().includes(user.name.toLowerCase())))) {
-            return name;
+    const fetchAppointments = async () => {
+        if (!API_BASE_URL) {
+            setLoading(false);
+            return;
         }
-        const parts = name.split(' ');
-        return parts.map(p => p.charAt(0) + '*'.repeat(Math.max(1, p.length - 1))).join(' ');
-    };
 
-    const fetchAppointments = () => {
-        if (!API_BASE_URL) return;
-        fetch(`${API_BASE_URL}/api/appointments`)
-            .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data) && data.length > 0) setAppointments(data);
-            })
-            .catch(err => {
-                console.warn("Using fallback demo appointments for mobile/cloud:", err);
-            });
+        try {
+            const token = localStorage.getItem('medora_token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            const res = await fetch(`${API_BASE_URL}/api/appointments`, { headers });
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    setAppointments(data);
+                }
+            }
+        } catch (err) {
+            console.warn("Appointments fetch error:", err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -50,10 +54,14 @@ export default function Appointments() {
         if (window.confirm(confirmMsg)) {
             try {
                 if (API_BASE_URL) {
-                    await fetch(`${API_BASE_URL}/api/appointments/${id}`, { method: 'DELETE' });
+                    const token = localStorage.getItem('medora_token');
+                    await fetch(`${API_BASE_URL}/api/appointments/${id}`, { 
+                        method: 'DELETE',
+                        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                    });
                 }
             } catch (err) {
-                console.warn("Backend delete failed, removing locally:", err);
+                console.warn("Backend delete failed:", err);
             } finally {
                 setAppointments(prev => prev.filter(a => a.id !== id));
                 window.dispatchEvent(new Event('medora_appointment_updated'));
@@ -65,6 +73,7 @@ export default function Appointments() {
         if (newAppt) {
             setAppointments(prev => [newAppt, ...prev]);
         }
+        window.dispatchEvent(new Event('medora_appointment_updated'));
         fetchAppointments();
     };
 
@@ -73,7 +82,13 @@ export default function Appointments() {
             <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
                     <h1>Appointments</h1>
-                    <p>{isPatient ? 'Your scheduled clinical consultations and physician visits' : 'Patient scheduling (HIPAA masked)'}</p>
+                    <p>
+                        {isPatient 
+                            ? 'Your confirmed clinical consultations and physician visits' 
+                            : isDoctor 
+                                ? 'Your assigned patient queue and clinical consultation schedule'
+                                : 'Master hospital appointment registry'}
+                    </p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                     <button 
@@ -106,7 +121,11 @@ export default function Appointments() {
                                 <td data-label="Doctor">
                                     <strong>{a.doctorName || `Dr. #${a.doctorId}`}</strong>
                                 </td>
-                                <td data-label="Patient">{maskName(a.patientName)}</td>
+                                <td data-label="Patient">
+                                    <span style={{ fontWeight: 500, color: 'var(--color-1)' }}>
+                                        {a.patientName}
+                                    </span>
+                                </td>
                                 <td data-label="Date">{a.appointmentDate}</td>
                                 <td data-label="Time">{a.startTime?.substring(0, 5)} - {a.endTime?.substring(0, 5)}</td>
                                 <td data-label="Status">
@@ -124,6 +143,13 @@ export default function Appointments() {
                                 </td>
                             </tr>
                         ))}
+                        {!loading && appointments.length === 0 && (
+                            <tr>
+                                <td colSpan="7" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                    No appointments scheduled.
+                                </td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
             </div>

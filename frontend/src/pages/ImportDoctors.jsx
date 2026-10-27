@@ -7,6 +7,7 @@ import {
 import { API_BASE_URL } from '../apiConfig';
 
 const STANDARD_FIELDS = [
+    { key: 'doctorId', label: 'Doctor ID', required: false, aliases: ['doctor id', 'doc id', 'physician id', 'staff id', 'id', 'emp id'] },
     { key: 'fullName', label: 'Full Name', required: true, aliases: ['name', 'doctor name', 'dr name', 'physician name', 'employee name', 'physician', 'full name'] },
     { key: 'email', label: 'Email', required: true, aliases: ['email', 'email address', 'e-mail', 'mail'] },
     { key: 'phone', label: 'Phone Number', required: false, aliases: ['phone', 'phone number', 'contact', 'mobile', 'cell'] },
@@ -156,7 +157,7 @@ export default function ImportDoctors({ onFinish }) {
         setStep(5); // Proceed to Review
     };
 
-    // Step 6: Process Batch Import via Java/JDBC
+    // Step 6: Process Batch Import via Backend API
     const handleExecuteImport = async () => {
         setStep(6);
         setIsImporting(true);
@@ -188,33 +189,40 @@ export default function ImportDoctors({ onFinish }) {
                 if (res.ok) {
                     const data = await res.json();
                     setImportResult(data);
+                    window.dispatchEvent(new Event('medora_doctor_updated'));
                 } else {
+                    const errData = await res.json().catch(() => ({}));
                     setImportResult({
-                        status: 'SUCCESS',
-                        imported: recordsToImport.length,
+                        status: 'FAILED',
+                        imported: 0,
+                        updated: 0,
                         skipped: validationResults.duplicates.length,
-                        failed: 0,
-                        totalRecords: recordsToImport.length
+                        failed: recordsToImport.length,
+                        totalRecords: recordsToImport.length,
+                        errorMessage: errData.error || 'Server rejected doctor import request.'
                     });
                 }
             } else {
-                setImportProgress(90);
                 setImportResult({
-                    status: 'SUCCESS',
-                    imported: recordsToImport.length,
+                    status: 'FAILED',
+                    imported: 0,
+                    updated: 0,
                     skipped: validationResults.duplicates.length,
-                    failed: validationResults.errors.length,
-                    totalRecords: recordsToImport.length
+                    failed: recordsToImport.length,
+                    totalRecords: recordsToImport.length,
+                    errorMessage: 'Backend API URL is not configured.'
                 });
             }
         } catch (err) {
-            console.warn("Backend unavailable, simulating successful client import report:", err);
+            console.error("Doctor import failure:", err);
             setImportResult({
-                status: 'SUCCESS',
-                imported: validationResults.valid.length,
+                status: 'FAILED',
+                imported: 0,
+                updated: 0,
                 skipped: validationResults.duplicates.length,
-                failed: validationResults.errors.length,
-                totalRecords: validationResults.valid.length
+                failed: validationResults.valid.length,
+                totalRecords: validationResults.valid.length,
+                errorMessage: err.message || 'Network connection to backend failed.'
             });
         } finally {
             setImportProgress(100);
@@ -443,7 +451,7 @@ export default function ImportDoctors({ onFinish }) {
                     </div>
                     <h2 style={{ margin: '0 0 0.5rem 0', color: 'var(--color-1)', fontFamily: '"Playfair Display", serif' }}>Transactional Ingestion in Progress</h2>
                     <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-                        Executing safe JDBC batch transactions across Users and Doctors tables...
+                        Executing safe batch transactions across Physician records...
                     </p>
 
                     <div style={{ maxWidth: '420px', margin: '0 auto', background: 'rgba(35,83,71,0.15)', height: '10px', borderRadius: '5px', overflow: 'hidden' }}>
@@ -464,7 +472,7 @@ export default function ImportDoctors({ onFinish }) {
                         INGESTION REPORT
                     </h1>
                     <p style={{ color: 'var(--text-secondary)', marginBottom: '2.5rem' }}>
-                        Dataset <strong>{file?.name || 'Physician List'}</strong> processed via transactional JDBC engine.
+                        Dataset <strong>{file?.name || 'Physician List'}</strong> processed via transactional data engine.
                     </p>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.25rem', maxWidth: '850px', margin: '0 auto 2.5rem auto' }}>

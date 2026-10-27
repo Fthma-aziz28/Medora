@@ -57,14 +57,12 @@ export default function EditLeaveModal({ isOpen, leave, onClose, onLeaveUpdated 
                 if (onLeaveUpdated) onLeaveUpdated(leave.id, status);
                 onClose();
             } else {
-                console.warn("Backend rejected leave update, applying optimistic demo update");
-                if (onLeaveUpdated) onLeaveUpdated(leave.id, status);
-                onClose();
+                const text = await res.text();
+                setErrorMsg(text || "Failed to update leave request.");
             }
         } catch (err) {
-            console.warn('Network error updating leave, applying optimistic demo update:', err);
-            if (onLeaveUpdated) onLeaveUpdated(leave.id, status);
-            onClose();
+            console.error('Network error updating leave:', err);
+            setErrorMsg("Network error connecting to leave management service.");
         } finally {
             setIsSubmitting(false);
         }

@@ -5,6 +5,29 @@
     flex-direction: column;
     gap: 1.5rem;
     width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+}
+
+/* Shared page header used across Roster, Appointments, etc. */
+.page-header {
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.page-header h1 {
+    font-size: 2rem;
+    font-weight: 500;
+    color: var(--color-1);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin: 0 0 0.25rem 0;
+}
+
+.page-header p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
 }
 
 .table-wrapper {
@@ -48,27 +71,45 @@
 }
 
 .status-badge {
+    display: inline-flex;
+    align-items: center;
     padding: 0.2rem 0.55rem;
     border-radius: 4px;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+.status-badge.active {
+    background-color: var(--color-6);
+    color: var(--color-4);
+    border: 1px solid rgba(35, 83, 71, 0.2);
 }
 
 .status-badge.confirmed {
     background-color: var(--color-6);
     color: var(--color-4);
+    border: 1px solid rgba(35, 83, 71, 0.2);
 }
 
 .status-badge.pending {
     background-color: #fef3c7;
     color: #b45309;
+    border: 1px solid rgba(217, 119, 6, 0.2);
 }
 
 .status-badge.cancelled {
     background-color: #fee2e2;
     color: #b91c1c;
+    border: 1px solid rgba(185, 28, 28, 0.2);
+}
+
+.status-badge.rejected {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid rgba(185, 28, 28, 0.2);
 }
 
 /* Mobile responsive tables */
@@ -76,6 +117,7 @@
     .table-wrapper {
         border: none;
         background: transparent;
+        overflow-x: auto;
     }
     
     .medora-table thead {
@@ -92,16 +134,18 @@
         margin-bottom: 1rem;
         border: 1px solid var(--border-subtle);
         border-radius: 4px;
-        padding: 1rem;
+        padding: 0.75rem 1rem;
         background: #FFFFFF;
     }
     
     .medora-table td {
         text-align: right;
-        padding: 0.6rem 0;
+        padding: 0.5rem 0;
         border-bottom: 1px solid var(--border-subtle);
         position: relative;
+        padding-left: 50%;
         font-size: 0.85rem;
+        min-height: 2rem;
     }
     
     .medora-table td:last-child {
@@ -119,5 +163,15 @@
         color: var(--text-muted);
         text-transform: uppercase;
         font-size: 0.7rem;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    
+    .page-header {
+        padding-bottom: 1rem;
+    }
+    
+    .page-header h1 {
+        font-size: 1.5rem;
     }
 }

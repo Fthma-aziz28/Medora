@@ -5,6 +5,7 @@ import java.time.LocalTime;
 public class Appointment {
     private Long id;
     private Long doctorId;
+    private Long patientUserId;
     private String patientName;
     private LocalDate appointmentDate;
     private LocalTime startTime;
@@ -12,6 +13,9 @@ public class Appointment {
     private String status;
     private String doctorName;
     private Boolean isEmergencyReplacement = false;
+
+    public Long getPatientUserId() { return patientUserId; }
+    public void setPatientUserId(Long patientUserId) { this.patientUserId = patientUserId; }
 
     public Boolean getIsEmergencyReplacement() { return isEmergencyReplacement; }
     public void setIsEmergencyReplacement(Boolean isEmergencyReplacement) { this.isEmergencyReplacement = isEmergencyReplacement; }
